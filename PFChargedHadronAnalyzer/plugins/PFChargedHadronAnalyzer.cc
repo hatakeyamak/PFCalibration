@@ -12,7 +12,7 @@
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h" 
 #include "DataFormats/EcalRecHit/interface/EcalUncalibratedRecHit.h" 
 #include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h" 
-#include "DataFormats/HcalRecHit/interface/HcalRecHitFwd.h"
+#include "DataFormats/HcalRecHit/interface/HcalRecHitDefs.h"
 
 #include "FWCore/Framework/interface/ESHandle.h"
 
