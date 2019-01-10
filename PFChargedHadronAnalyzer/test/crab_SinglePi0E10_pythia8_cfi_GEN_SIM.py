@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'PGun_step1_GEN_SIM_1002_200_500_Feb_13'
+config.General.requestName = 'PGun_step1_GEN_SIM_10_4_0_E2_500_v1'
 config.General.workArea = 'crab_projects'
 
 #optional
@@ -31,10 +31,10 @@ config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 config.Data.publication = False
 #config.Data.publishDBS = '' default for the moment
 #config.Data.outLFN = '/home/spandey/t3store/PF_PGun'
-config.Data.outLFNDirBase = '/store/user/spandey/step1/PGun_step1_GEN_SIM_1002_200_500_Feb_13/'
+config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step1/PGun_step1_GEN_SIM_10_4_0_E2_500_v1/'
 
 config.section_("Site")
-config.Site.storageSite = 'T2_IN_TIFR'
+config.Site.storageSite = 'T3_US_FNALLPC'
 #config.Site.blacklist = ['T3_US_UCR', 'T3_US_UMiss']
 #config.Site.whitelist = ['T2_CH_CERN','T2_KR_KNU']
 

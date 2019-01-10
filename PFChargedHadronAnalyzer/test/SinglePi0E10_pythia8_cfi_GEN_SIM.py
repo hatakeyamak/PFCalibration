@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
 
-process = cms.Process('SIM',eras.Run2_2018)
+process = cms.Process('SIM')
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -26,7 +26,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(10)
 )
 
 # Input source
@@ -50,7 +50,7 @@ process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
         SelectEvents = cms.vstring('generation_step')
     ),
     compressionAlgorithm = cms.untracked.string('LZMA'),
-    compressionLevel = cms.untracked.int32(9),
+    compressionLevel = cms.untracked.int32(1),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string('GEN-SIM'),
         filterName = cms.untracked.string('')
@@ -66,8 +66,7 @@ process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
 # Other statements
 process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
-#process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run1_mc', '')
-process.GlobalTag = GlobalTag(process.GlobalTag, '100X_upgrade2018_realistic_v10', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run1_mc', '')
 
 # process.generator = cms.EDFilter("Pythia8EGun",
 #     PGunParameters = cms.PSet(
@@ -89,12 +88,11 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '100X_upgrade2018_realistic_v10
 # )
 
 process.generator = cms.EDProducer("FlatRandomEGunProducer",
-    PGunParameters = cms.PSet(
-        
+    PGunParameters = cms.PSet(        
         MaxE = cms.double(500),
         MaxEta = cms.double(3.0),
         MaxPhi = cms.double(3.14159265359),
-        MinE = cms.double(200),
+        MinE = cms.double(2),
         MinEta = cms.double(-3.0),
         MinPhi = cms.double(-3.14159265359),
         #ParticleID = cms.vint32(211)
@@ -105,11 +103,6 @@ process.generator = cms.EDProducer("FlatRandomEGunProducer",
     firstRun = cms.untracked.uint32(1),
     psethack = cms.string('single pi E 50 HCAL')
 )
-
-
-process.RandomNumberGeneratorService.generator.initialSeed = 15279842
-
-
 
 # Path and EndPath definitions
 process.generation_step = cms.Path(process.pgen)
@@ -124,7 +117,7 @@ from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 # filter all path with the production filter sequence
 for path in process.paths:
-	getattr(process,path)._seq = process.generator * getattr(process,path)._seq 
+	getattr(process,path).insert(0, process.generator)
 
 
 # Customisation from command line

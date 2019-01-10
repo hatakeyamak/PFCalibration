@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'PGun_step2_DIGI_1002_2_200_Feb_12'
+config.General.requestName = 'PGun_step2_DIGI_10_4_0_E2_500_v1'
 config.General.workArea = 'crab_projects'
 
 #optional
@@ -24,7 +24,7 @@ config.section_("Data")
 #config.Data.inputDataset = '/Single_Pion_gun_13TeV_pythia8/Fall14DR73-NoPU_MCRUN2_73_V9-v1/GEN-SIM-RAW-RECO'
 #config.Data.primaryDataset = ''
 #config.Data.splitting = 'EventBased'
-config.Data.userInputFiles = open('/afs/cern.ch/work/s/spandey/public/PF_cal/10_0_2/CMSSW_10_0_2/src/120.0_SinglePi0E10+SinglePi0E10+DIGI+RECO/step1_file_list.txt').readlines()
+config.Data.userInputFiles = open('/uscms_data/d2/hatake/PF/CMSSW_10_4_0/src/PFCalibration/PFChargedHadronAnalyzer/test/step1_file_list.txt').readlines()
 config.Data.ignoreLocality = True
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
@@ -33,12 +33,12 @@ config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 config.Data.publication = False
 #config.Data.publishDBS = '' default for the moment
 #config.Data.outLFN = '/home/spandey/t3store/PF_PGun'
-config.Data.outLFNDirBase = '/store/user/spandey/step2/PGun_step2_DIGI_1002_2_200_Feb_12/'
+config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step2/PGun_step1_GEN_SIM_10_4_0_E2_500_v1/'
 
 config.section_("Site")
-config.Site.storageSite = 'T2_IN_TIFR'
+config.Site.storageSite = 'T3_US_FNALLPC'
 #config.Site.blacklist = ['T3_US_UCR', 'T3_US_UMiss']
-config.Site.whitelist = ['T2_CH_CERN','T2_KR_KNU']
+config.Site.whitelist = ['T2_US_*','T3_US_FNALLPC']
 
 #config.section_("User")
 #config.section_("Debug")
