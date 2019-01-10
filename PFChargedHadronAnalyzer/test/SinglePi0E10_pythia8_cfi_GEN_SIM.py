@@ -2,12 +2,12 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: SinglePi0E10_pythia8_cfi --conditions auto:run1_mc -n 10 --eventcontent RAWSIM --relval 25000,100 -s GEN,SIM --datatier GEN-SIM --beamspot Realistic8TeVCollision --fileout file:step1.root
+# with command line options: SinglePi0E10_pythia8_cfi --conditions auto:phase1_2018_realistic -n 10 --era Run2_2018 --eventcontent FEVTDEBUG --relval 50000,500 -s GEN,SIM --datatier GEN-SIM --beamspot Realistic25ns13TeVEarly2018Collision --geometry DB:Extended --fileout file:step1.root --no_exec
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
 
-process = cms.Process('SIM')
+process = cms.Process('SIM',eras.Run2_2018)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -16,10 +16,10 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
-process.load('Configuration.Geometry.GeometrySimDB_cff')
+process.load('Configuration.StandardSequences.GeometrySimDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.Generator_cff')
-process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic8TeVCollision_cfi')
+process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic25ns13TeVEarly2018Collision_cfi')
 process.load('GeneratorInterface.Core.genFilterSummary_cff')
 process.load('Configuration.StandardSequences.SimIdeal_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
@@ -45,47 +45,45 @@ process.configurationMetadata = cms.untracked.PSet(
 
 # Output definition
 
-process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
+process.FEVTDEBUGoutput = cms.OutputModule("PoolOutputModule",
     SelectEvents = cms.untracked.PSet(
         SelectEvents = cms.vstring('generation_step')
     ),
-    compressionAlgorithm = cms.untracked.string('LZMA'),
-    compressionLevel = cms.untracked.int32(1),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string('GEN-SIM'),
         filterName = cms.untracked.string('')
     ),
-    eventAutoFlushCompressedSize = cms.untracked.int32(20971520),
     fileName = cms.untracked.string('file:step1.root'),
-    outputCommands = process.RAWSIMEventContent.outputCommands,
+    outputCommands = process.FEVTDEBUGEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
 
 # Additional output definition
 
 # Other statements
+process.XMLFromDBSource.label = cms.string("Extended")
 process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run1_mc', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2018_realistic', '')
 
-# process.generator = cms.EDFilter("Pythia8EGun",
-#     PGunParameters = cms.PSet(
-#         AddAntiParticle = cms.bool(False),
-#         MaxE = cms.double(10.01),
-#         MaxEta = cms.double(3.0),
-#         MaxPhi = cms.double(3.14159265359),
-#         MinE = cms.double(9.99),
-#         MinEta = cms.double(-3.0),
-#         MinPhi = cms.double(-3.14159265359),
-#         ParticleID = cms.vint32(111)
-#     ),
-#     PythiaParameters = cms.PSet(
-#         parameterSets = cms.vstring()
-#     ),
-#     Verbosity = cms.untracked.int32(0),
-#     firstRun = cms.untracked.uint32(1),
-#     psethack = cms.string('single pi0 E 10')
-# )
+#process.generator = cms.EDFilter("Pythia8EGun",
+#    PGunParameters = cms.PSet(
+#        AddAntiParticle = cms.bool(False),
+#        MaxE = cms.double(10.01),
+#        MaxEta = cms.double(3.0),
+#        MaxPhi = cms.double(3.14159265359),
+#        MinE = cms.double(9.99),
+#        MinEta = cms.double(-3.0),
+#        MinPhi = cms.double(-3.14159265359),
+#        ParticleID = cms.vint32(111)
+#    ),
+#    PythiaParameters = cms.PSet(
+#        parameterSets = cms.vstring()
+#    ),
+#    Verbosity = cms.untracked.int32(0),
+#    firstRun = cms.untracked.uint32(1),
+#    psethack = cms.string('single pi0 E 10')
+#)
 
 process.generator = cms.EDProducer("FlatRandomEGunProducer",
     PGunParameters = cms.PSet(        
@@ -109,10 +107,10 @@ process.generation_step = cms.Path(process.pgen)
 process.simulation_step = cms.Path(process.psim)
 process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-process.RAWSIMoutput_step = cms.EndPath(process.RAWSIMoutput)
+process.FEVTDEBUGoutput_step = cms.EndPath(process.FEVTDEBUGoutput)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.generation_step,process.genfiltersummary_step,process.simulation_step,process.endjob_step,process.RAWSIMoutput_step)
+process.schedule = cms.Schedule(process.generation_step,process.genfiltersummary_step,process.simulation_step,process.endjob_step,process.FEVTDEBUGoutput_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 # filter all path with the production filter sequence
