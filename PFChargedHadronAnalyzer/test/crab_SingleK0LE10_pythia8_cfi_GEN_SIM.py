@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'PGun_step1_GEN_SIM_10_4_0_E2_500_v2'
+config.General.requestName = 'SingleK0L_step1_GEN_SIM_10_4_0_E2_500_v2'
 config.General.workArea = 'crab_projects'
 
 #optional
@@ -17,7 +17,7 @@ config.General.workArea = 'crab_projects'
 config.section_("JobType")
 config.JobType.pluginName = 'PrivateMC'
 #config.JobType.psetName = 'SinglePiE50HCAL_pythia8_cfi_GEN_SIM.py'
-config.JobType.psetName = 'SinglePi0E10_pythia8_cfi_GEN_SIM.py'
+config.JobType.psetName = 'SingleK0LE10_pythia8_cfi_GEN_SIM.py'
 config.JobType.outputFiles = ['step1.root']
 config.JobType.eventsPerLumi = 2000
 
@@ -31,7 +31,7 @@ config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 config.Data.publication = False
 #config.Data.publishDBS = '' default for the moment
 #config.Data.outLFN = '/home/spandey/t3store/PF_PGun'
-config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step1/PGun_step1_GEN_SIM_10_4_0_E2_500_v2/'
+config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step1/SingleK0L_step1_GEN_SIM_10_4_0_E2_500_v1/'
 
 config.section_("Site")
 config.Site.storageSite = 'T3_US_FNALLPC'

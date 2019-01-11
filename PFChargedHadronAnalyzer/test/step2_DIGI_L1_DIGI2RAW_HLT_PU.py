@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: step2 --conditions auto:phase1_2018_realistic -s DIGI:pdigi_valid,L1,DIGI2RAW,HLT:@relval2018 --datatier GEN-SIM-DIGI-RAW -n 10 --geometry DB:Extended --era Run2_2018 --eventcontent FEVTDEBUGHLT --filein file:step1.root --fileout file:step2.root
+# with command line options: step2 --conditions auto:phase1_2018_realistic --pileup_input das:/RelValMinBias_13/CMSSW_10_3_0_pre5-103X_upgrade2018_realistic_v7-v1/GEN-SIM -n 10 --era Run2_2018 --eventcontent FEVTDEBUGHLT -s DIGI:pdigi_valid,L1,DIGI2RAW,HLT:@relval2018 --datatier GEN-SIM-DIGI-RAW --pileup AVE_50_BX_25ns --geometry DB:Extended --filein file:step1.root --fileout file:step2.root
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
@@ -14,7 +14,7 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
-process.load('SimGeneral.MixingModule.mixNoPU_cfi')
+process.load('SimGeneral.MixingModule.mix_POISSON_average_cfi')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.Digi_cff')
@@ -25,7 +25,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(10)
 )
 
 # Input source
@@ -80,6 +80,11 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
 # Additional output definition
 
 # Other statements
+process.mix.input.nbPileupEvents.averageNumber = cms.double(50.000000)
+process.mix.bunchspace = cms.int32(25)
+process.mix.minBunch = cms.int32(-12)
+process.mix.maxBunch = cms.int32(3)
+process.mix.input.fileNames = cms.untracked.vstring(['/store/relval/CMSSW_10_3_0_pre5/RelValMinBias_13/GEN-SIM/103X_upgrade2018_realistic_v7-v1/10000/F9E9DD52-4C1B-834C-AC55-C0F4BEA6E7DF.root', '/store/relval/CMSSW_10_3_0_pre5/RelValMinBias_13/GEN-SIM/103X_upgrade2018_realistic_v7-v1/10000/E71FB48E-AA82-B04E-A466-62783B73379A.root', '/store/relval/CMSSW_10_3_0_pre5/RelValMinBias_13/GEN-SIM/103X_upgrade2018_realistic_v7-v1/10000/022A4F76-7CF3-3A4F-9AD3-9708662D0CC4.root', '/store/relval/CMSSW_10_3_0_pre5/RelValMinBias_13/GEN-SIM/103X_upgrade2018_realistic_v7-v1/10000/D85A338F-CCF2-7B49-ADB1-246F67EC85D4.root', '/store/relval/CMSSW_10_3_0_pre5/RelValMinBias_13/GEN-SIM/103X_upgrade2018_realistic_v7-v1/10000/AF4BA788-237D-8540-8C51-F1D98DB52767.root', '/store/relval/CMSSW_10_3_0_pre5/RelValMinBias_13/GEN-SIM/103X_upgrade2018_realistic_v7-v1/10000/D12742E3-ED09-BB44-955F-21A001BADE7F.root'])
 process.mix.digitizers = cms.PSet(process.theDigitizersValid)
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2018_realistic', '')
