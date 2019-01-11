@@ -36,7 +36,7 @@ config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 config.Data.publication = False
 #config.Data.publishDBS = '' default for the moment
 #config.Data.outLFN = '/home/spandey/t3store/PF_PGun'
-config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step2/PGun_step1_GEN_SIM_10_4_0_E2_500_v4/'
+config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step2/PGun_step2_GEN_SIM_10_4_0_E2_500_v4/'
 
 config.Data.outputPrimaryDataset = 'SinglePi'
 config.Data.publication = True

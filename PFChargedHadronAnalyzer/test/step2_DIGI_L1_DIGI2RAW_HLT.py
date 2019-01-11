@@ -115,4 +115,4 @@ from Configuration.StandardSequences.earlyDeleteSettings_cff import customiseEar
 process = customiseEarlyDelete(process)
 # End adding early deletion
 
-process.options.numberOfThreads = cms.untracked.uint32(2)
+#process.options.numberOfThreads = cms.untracked.uint32(2)
