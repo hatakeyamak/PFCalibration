@@ -38,7 +38,7 @@ config.Data.publication = False
 #config.Data.outLFN = '/home/spandey/t3store/PF_PGun'
 config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step2/SingleK0L_step2_GEN_SIM_10_4_0_E2_500_v1/'
 
-config.Data.outputPrimaryDataset = 'SinglePi'
+config.Data.outputPrimaryDataset = 'SingleK0L'
 config.Data.publication = True
 config.Data.publishDBS = 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter/' # Parameter Data.publishDbsUrl has been renamed to Data.publishDBS
 config.Data.outputDatasetTag = 'CMSSW_10_4_0_Step2_v1' # <== Check!!!

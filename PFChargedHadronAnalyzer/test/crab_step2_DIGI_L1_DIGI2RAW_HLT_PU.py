@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'PGun_step2_DIGI_10_4_0_E2_500_PU_v4'
+config.General.requestName = 'PGun_step2_DIGI_10_4_0_E2_500_PU_v5'
 config.General.workArea = 'crab_projects'
 
 #optional
@@ -20,7 +20,7 @@ config.JobType.psetName = 'step2_DIGI_L1_DIGI2RAW_HLT_PU.py'
 config.JobType.outputFiles = ['step2.root']
 #config.JobType.eventsPerLumi = 2000
 
-config.JobType.maxMemoryMB = 3000
+config.JobType.maxMemoryMB = 3500
 #config.JobType.numCores = 2
 
 config.section_("Data")
@@ -36,12 +36,12 @@ config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 config.Data.publication = False
 #config.Data.publishDBS = '' default for the moment
 #config.Data.outLFN = '/home/spandey/t3store/PF_PGun'
-config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step2/PGun_step2_GEN_SIM_10_4_0_E2_500_PU_v4/'
+config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step2/PGun_step2_GEN_SIM_10_4_0_E2_500_PU_v5/'
 
 config.Data.outputPrimaryDataset = 'SinglePi'
 config.Data.publication = True
 config.Data.publishDBS = 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter/' # Parameter Data.publishDbsUrl has been renamed to Data.publishDBS
-config.Data.outputDatasetTag = 'CMSSW_10_4_0_Step2_PU_v4' # <== Check!!!
+config.Data.outputDatasetTag = 'CMSSW_10_4_0_Step2_PU_v5' # <== Check!!!
 
 config.section_("Site")
 config.Site.storageSite = 'T3_US_FNALLPC'
