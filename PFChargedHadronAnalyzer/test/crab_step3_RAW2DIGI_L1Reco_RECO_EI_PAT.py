@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'PGun_step3_RECO_10_4_0_E2_500_v4'
+config.General.requestName = 'PGun_step3_RECO_10_4_0_E2_500_v5'
 config.General.workArea = 'crab_projects'
 
 #optional
@@ -41,11 +41,11 @@ config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 #config.Data.publishDBS = '' default for the moment
 #config.Data.outLFN = '/home/spandey/t3store/PF_PGun'
 #config.Data.outLFNDirBase = '/store/user/spandey/step3/PGun_step3_RECO_1002_2_200_Feb_13/'
-config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step3/PGun_step3_RECO_10_4_0_E2_500_v4/'
+config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step3/PGun_step3_RECO_10_4_0_E2_500_v5/'
 
 config.Data.publication = True
 config.Data.publishDBS = 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter/' # Parameter Data.publishDbsUrl has been renamed to Data.publishDBS
-config.Data.outputDatasetTag = 'CMSSW_10_4_0_Step3_v4' # <== Check!!!
+config.Data.outputDatasetTag = config.General.requestName # <== Check!!!
 
 config.section_("Site")
 config.Site.storageSite = 'T3_US_FNALLPC'

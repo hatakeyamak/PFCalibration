@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'SingleK0L_step3_RECO_10_4_0_E2_500_v2'
+config.General.requestName = 'SingleK0L_step3_RECO_10_4_0_E2_500_v3'
 config.General.workArea = 'crab_projects'
 
 #optional
@@ -42,14 +42,14 @@ config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 #config.Data.publishDBS = '' default for the moment
 #config.Data.outLFN = '/home/spandey/t3store/PF_PGun'
 #config.Data.outLFNDirBase = '/store/user/spandey/step3/PGun_step3_RECO_1002_2_200_Feb_13/'
-config.Data.outLFNDirBase = '/store/user/hatake/step3/SingleK0L_step3_RECO_10_4_0_E2_500_v2/'
+config.Data.outLFNDirBase = '/store/group/hcal_upgrade/hatake/step3/SingleK0L_step3_RECO_10_4_0_E2_500_v3/'
 
 config.Data.publication = True
 config.Data.publishDBS = 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter/' # Parameter Data.publishDbsUrl has been renamed to Data.publishDBS
-config.Data.outputDatasetTag = 'CMSSW_10_4_0_Step3_v2' # <== Check!!!
+config.Data.outputDatasetTag = config.General.requestName # <== Check!!!
 
 config.section_("Site")
-config.Site.storageSite = 'T3_US_Baylor'
+config.Site.storageSite = 'T3_US_FNALLPC'
 #config.Site.blacklist = ['T3_US_UCR', 'T3_US_UMiss']
 config.Site.whitelist = ['T2_US_*','T3_US_FNALLPC','T3_US_Baylor']
 
