@@ -1,0 +1,11 @@
+HcalTreeAnalyzer/macros_PF/dataset
+*.pyc
+*.root
+*~
+*#
+*__init__.py
+crab_*
+crab.log
+log/
+*.pdf
+*.png

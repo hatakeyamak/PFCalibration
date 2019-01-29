@@ -687,8 +687,8 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 
 
     // // Number of pixel hits
-      if ( inner < nPixMin_ ) continue;
-      nCh[6]++;
+    if ( inner < nPixMin_ ) continue;
+    nCh[6]++;
     
       // h_phi_4->Fill(pfc.phi());   //qwerty Feb_15 2018
 
@@ -704,8 +704,8 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       if ( trackerHitOK ) break;
       etaMin = etaMax;
     }
-      if ( !trackerHitOK ) continue;
-      nCh[7]++;
+    if ( !trackerHitOK ) continue;
+    nCh[7]++;
     
       // h_phi_5->Fill(pfc.phi());   //qwerty Feb_15 2018
 
