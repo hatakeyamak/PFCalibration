@@ -141,8 +141,8 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
    //fReader.SetTree(ch);  //the tree reader (Defined in fReader.h)
    TTree* sTree;
    sTree = (TTree*)ch;
-   Float_t true_, p_, eta_, ecal_, hcal_, ho_;
-   TBranch *b_true, *b_p, *b_eta, *b_ecal, *b_hcal, *b_ho;
+   Float_t true_, p_, eta_, ecal_, hcal_, ho_, ecal_rec_, hcal_rec_, ecal_clust_, hcal_clust_;
+   TBranch *b_true, *b_p, *b_eta, *b_ecal, *b_hcal, *b_ho, *b_ecal_rec_, *b_hcal_rec_, *b_ecal_clust_, *b_hcal_clust_;
    //std::vector<float> *Eecal_;
    //std::vector<float> *Ehcal_;
    //std::vector<float> *dr_;
@@ -158,7 +158,11 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
    sTree->SetBranchAddress("eta", &eta_, &b_eta);
    sTree->SetBranchAddress("ecal", &ecal_, &b_ecal);
    sTree->SetBranchAddress("hcal", &hcal_, &b_hcal);
-   sTree->SetBranchAddress("ho", &ho_, &b_ho);
+   sTree->SetBranchAddress("ho", &ho_, &b_ho);		      
+   sTree->SetBranchAddress("ecal_rec", &ecal_rec_, &b_ecal_rec_);		      
+   sTree->SetBranchAddress("hcal_rec", &hcal_rec_, &b_hcal_rec_);		      
+   sTree->SetBranchAddress("ecal_clust", &ecal_clust_, &b_ecal_clust_);		      
+   sTree->SetBranchAddress("hcal_clust", &hcal_clust_, &b_hcal_clust_);		      
    //sTree->SetBranchAddress("Eecal", &Eecal_, &b_E_ecal);
    //sTree->SetBranchAddress("Ehcal", &Ehcal_, &b_E_hcal);
    //sTree->SetBranchAddress("dr", &dr_, &b_dr);
@@ -202,7 +206,8 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
      sTree->GetEntry(ievent);
      if(ievent%100000==0) cout << "[HCAL analyzer] Processed " << ievent << " out of " << nentries << " events" << endl; 
      if (maxevents>0 && ievent>maxevents) Break;
-     if (true_>400 || true_<=5.0) continue; // to handle bug with gen_e > 400 GeV
+     //if ( ecal_>.5 ) continue; // to analyze PF h hadrons, interested in events that shower exclusively in hcal
+     //if (true_>400 || true_<=5.0) continue; // to handle bug with gen_e > 400 GeV
      //--------------------
      // Loop over Gen
      //--------------------
@@ -218,6 +223,10 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
      if (eta < 1.5){
        strtmp = "Response_barrel";
        fill1DProf(v_hist, strtmp, gen_e, (pf_totalRaw - gen_e)/gen_e);
+       strtmp = "RecHit Response barrel";
+       fill1DProf(v_hist, strtmp, gen_e, (ecal_rec_ + hcal_rec_ - gen_e)/gen_e);
+       strtmp = "PFClust Response barrel";
+       fill1DProf(v_hist, strtmp, gen_e, (ecal_clust_ + hcal_clust_ - gen_e)/gen_e);
      }
      if (eta > 1.5 && eta < 3.0){
        strtmp = "Response_endcap";
@@ -250,12 +259,12 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
 //
 //void ana_PFStudy(TString rootfile="../../HGCalTreeMaker/test/ttbar_10_4_D30_pt25.root",TString outfile="pfstudy_histograms.root",int maxevents=-1)
 // "D30" for D30 geo, "D28" for D28
-void ana_main(TString sampleType, TString testFile = "test_numEvent10000.root")
+void ana_main(TString sampleType, TString testFile = "test_numEvent300000.root")
 {
   int maxevents=-1;
   // edit 
-  bool test_file = false; // if testing setup with single file (will have to edit below for file choice)
-  TString outfile  = sampleType+"_histos_trees_test.root";
+  bool test_file = true; // if testing setup with single file (will have to edit below for file choice)
+  TString outfile  = sampleType+"_histos_trees_recHit.root";
 
   std::vector<std::string> inputFiles;
   if (!test_file){
@@ -317,6 +326,9 @@ void bookHistograms(TList *v_hist)
   book1DProf(v_hist, "Response_barrel", 50, 0, 500, -0.5, 0.5);
   book1DProf(v_hist, "Response_endcap", 50, 0, 500, -0.5, 0.5);
   book1DProf(v_hist, "Response_eta", 30, 0, 3, -0.2, 0.2);
+
+  book1DProf(v_hist, "RecHit Response barrel", 50, 0, 500, -0.5, 0.5);
+  book1DProf(v_hist, "PFClust Response barrel", 50, 0, 500, -0.5, 0.5);
   
 }
 //

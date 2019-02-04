@@ -31,7 +31,7 @@ process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 # process.load('DQMOffline.Configuration.DQMOfflineMC_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
-options.maxEvents = 10000 ## -1 means all events
+options.maxEvents = 300000 ## -1 means all events
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(options.maxEvents)
@@ -66,6 +66,10 @@ process.pfChargedHadronAnalyzer = cms.EDAnalyzer(
     PFSimParticles = cms.InputTag("particleFlowSimParticle"),
     EcalPFClusters = cms.InputTag("particleFlowClusterECAL"),
     HcalPFClusters = cms.InputTag("particleFlowClusterHCAL"),
+    EcalRecHitsEB    = cms.InputTag("ecalRecHit","EcalRecHitsEB"),
+    EcalRecHitsEE    = cms.InputTag("ecalRecHit","EcalRecHitsEE"),
+    EcalRecHitsES    = cms.InputTag("ecalPreshowerRecHit","EcalRecHitsES"),
+    HcalRecHits    = cms.InputTag("hbhereco",""),
     ptMin = cms.double(1.),                     # Minimum pt
     pMin = cms.double(1.),                      # Minimum p
     nPixMin = cms.int32(2),                     # Nb of pixel hits

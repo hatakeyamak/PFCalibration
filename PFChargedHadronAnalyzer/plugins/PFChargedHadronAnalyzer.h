@@ -24,6 +24,13 @@
 #include "DataFormats/ParticleFlowReco/interface/PFClusterFwd.h"
 
 
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h" 
+#include "DataFormats/EcalRecHit/interface/EcalUncalibratedRecHit.h" 
+#include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h" 
+//#include "DataFormats/HcalRecHit/interface/HcalRecHitFwd.h"
+#include "DataFormats/HcalRecHit/interface/HcalRecHitDefs.h"
+
+
 #include <TFile.h>
 #include <TTree.h>
 #include <TVector3.h>
@@ -79,9 +86,22 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   edm::InputTag   inputTagPFSimParticles_;
   
   edm::InputTag   inputTagEcalPFClusters_;
+  edm::InputTag   inputTagHcalPFClusters_;
+  
+  edm::InputTag   inputTagEcalRecHitsEB_;
+  edm::InputTag   inputTagEcalRecHitsEE_;
+  edm::InputTag   inputTagEcalRecHitsES_;
+  edm::InputTag   inputTagHcalRecHits_;
+
   edm::EDGetTokenT<reco::PFCandidateCollection> tokenPFCandidates_;
   edm::EDGetTokenT<reco::PFSimParticleCollection>   tokenPFSimParticles_;
   edm::EDGetTokenT<reco::PFClusterCollection>   tokenEcalPFClusters_;
+  edm::EDGetTokenT<reco::PFClusterCollection>   tokenHcalPFClusters_;
+
+  edm::EDGetTokenT<EcalRecHitCollection> tokenEcalRecHitsEB_;
+  edm::EDGetTokenT<EcalRecHitCollection> tokenEcalRecHitsEE_;
+  edm::EDGetTokenT<EcalRecHitCollection> tokenEcalRecHitsES_;
+  edm::EDGetTokenT<HBHERecHitCollection> tokenHcalRecHits_;
 
   /// Min pt for charged hadrons
   double ptMin_;
@@ -115,6 +135,8 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   
   float true_,p_,ecal_,hcal_,eta_,phi_,ho_;
   float etaEcal_,phiEcal_;
+  float ecal_rec_,hcal_rec_;
+  float ecal_clust_,hcal_clust_;
   int charge_;
   std::vector<float> dr_,Eecal_,Ehcal_,pfcID_;
   size_t orun,oevt,olumiBlock,otime;
