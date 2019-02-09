@@ -1,3 +1,4 @@
+from __future__ import division
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.python.keras import layers
@@ -24,6 +25,22 @@ from sklearn import preprocessing
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression
 
+def plot_hist_compare(x,bins,labels,xlabel,fig_name):
+
+  fig = plt.figure()
+  plt.hist(x, 
+           bins,
+           density = True,
+           histtype = 'step', 
+           label = labels)
+
+  plt.xlabel(xlabel)
+  plt.grid(True)
+  plt.legend()
+  plt.show()
+  fig.savefig(fig_name)
+  plt.clf()
+  plt.close()
 
 ### Add training and target variables here
 inputVariables = ['gen_e','eta','pf_totalRaw','pf_ecalRaw','pf_hcalRaw']#,'pf_hoRaw']
@@ -38,16 +55,14 @@ dataset = dataset.dropna()
 ### to directly compare to Raw
 my_cut = (abs(dataset['eta'])<1.5) & (dataset['pf_totalRaw'] >0) & (dataset['gen_e']>0) & (dataset['gen_e']<500)
 train_cut     = (dataset['pf_totalRaw']-dataset['gen_e'])/dataset['gen_e'] > -0.90 ## dont train on bad data with response of -1 
-print len(dataset)
 dataset = dataset[(my_cut) & (train_cut)]
-print len(dataset)
 dataset = dataset.reset_index()
-compareData = dataset.copy()
+
 
 
 ##Prepare Data for training
-dataset['pf_ecalRaw'] = dataset['pf_ecalRaw']/dataset['pf_totalRaw']
-dataset['pf_hcalRaw'] = dataset['pf_hcalRaw']/dataset['pf_totalRaw']
+#dataset['pf_ecalRaw'] = dataset['pf_ecalRaw']/dataset['pf_totalRaw']
+#dataset['pf_hcalRaw'] = dataset['pf_hcalRaw']/dataset['pf_totalRaw']
 #dataset['pf_hoRaw'] = dataset['pf_hoRaw']/dataset['pf_totalRaw']
 
 ## Mirror low E data across zero to help with performance
@@ -57,6 +72,18 @@ dataset['pf_hcalRaw'] = dataset['pf_hcalRaw']/dataset['pf_totalRaw']
 #dataset = pd.concat([dataset,mirror_Data], ignore_index=True)
 ###
 ### define Test and Train Data as well as the target
+temp_data = dataset[dataset['gen_e'] <= 200]
+a = len(dataset[(dataset['gen_e']>200) & (dataset['gen_e']<=400)] )
+b = len(dataset[dataset['gen_e']<=200])
+temp_data = temp_data.sample(frac=int(a)/int(b),random_state=1)
+
+#print 'tempData', temp_data
+
+dataset = pd.concat([temp_data, dataset[dataset['gen_e']>200]],ignore_index=False)
+#dataset = dataset.drop('index', axis=1)
+compareData = dataset.copy()
+#plot_hist_compare(dataset['gen_e'],25,'test','test','test')
+
 train_dataset = dataset.sample(frac=0.8,random_state=1)
 #train_cut     = (train_dataset['pf_totalRaw']-train_dataset['gen_e'])/train_dataset['gen_e'] > -0.9 ## dont train on bad data with response of -1 
 #train_dataset = train_dataset[train_cut]
@@ -98,6 +125,11 @@ normed_test_data = dropIndex(norm(test_dataset))
 scaled_train_data = dropIndex(scale(train_dataset))
 scaled_test_data = dropIndex(scale(test_dataset))
 
+
+#train_labels = train_labels/np.amax(train_labels)
+#test_max = np.amax(test_labels)
+#test_labels  = test_labels/test_max
+
 #print test_labels, train_labels
 #print scaled_test_data
 #print normed_test_data.tail()
@@ -108,16 +140,12 @@ scaled_test_data = dropIndex(scale(test_dataset))
 ### Build the model
 def build_model():
   model = keras.Sequential([
-    layers.Dense(4, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.0001), input_shape=[len(scaled_train_data.keys())]),# l1 0000
-    #keras.layers.Dropout(0.5),#.2
-    layers.Dense(8, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.00)),#10, l2 = 0.010
-    keras.layers.Dropout(0.2), # 0
-    layers.Dense(16, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.01)),#30, l2 = .001
-    keras.layers.Dropout(0.3), # 0
-    layers.Dense(1, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.05)),#15, l1 =.001
+    layers.Dense(4, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.1), input_shape=[len(scaled_train_data.keys())]),# l1 0000
+    #keras.layers.Dropout(0.3), # 0
+    layers.Dense(8, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.1)),#15, l1 =.001
     #keras.layers.Dropout(0.7),#0 
-    layers.Dense(10, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.00)), #10, l1 = .01
-    keras.layers.Dropout(0.5), # .49
+    #layers.Dense(4, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.00)), #10, l1 = .01
+    #keras.layers.Dropout(0.5), # .49
     layers.Dense(1)
   ])
   #optimizer = tf.train.RMSPropOptimizer(0.001)
@@ -128,7 +156,7 @@ def build_model():
     second_log = math_ops.log(K.clip(y_true, K.epsilon(), None) + 1.)
     return K.sqrt(K.mean(math_ops.square(first_log - second_log), axis=-1))
   
-  model.compile(loss='mse', # mae, logcosh
+  model.compile(loss='mae', # mae
                 optimizer=optimizer,
                 metrics=['mae', 'mse'])
   return model
@@ -137,14 +165,15 @@ model = build_model()
 
 ###########################################
 ### Train the model
-EPOCHS = 20 # 30
+EPOCHS = 40 # 30
 
 history = model.fit(
   scaled_train_data, train_labels,
-  epochs=EPOCHS, batch_size=6000, # 10k
+  epochs=EPOCHS, batch_size=8192, # 10k
   validation_data=(scaled_test_data,test_labels),
   verbose=1)
-  
+###########################################
+####Analyze the training history  
 #keras.utils.plot_model(model, to_file="model.png", show_shapes=True)
 
 hist = pd.DataFrame(history.history)
@@ -185,23 +214,25 @@ loss, mae, mse = model.evaluate(scaled_test_data, test_labels, verbose=1)
 
 print("Testing set Mean Abs Error: {:5.2f} E".format(mae))
 ###################################
-
-### Predict 
+### Predict using test Dataset
+### (reverse feature prep here) 
 test_predictions = model.predict(scaled_test_data).flatten()
 
 ###Recover meaningful predictions
 #test_predictions = np.exp(test_predictions)*test_dataset['pf_totalRaw']###############
 test_predictions = 1/((test_predictions+1)/test_dataset['pf_totalRaw'])#######################
 #test_predictions = np.exp(test_predictions)
+#test_predictions = test_predictions*test_max
 
 #test_labels = np.exp(test_labels)*test_dataset['pf_totalRaw']#########################
 test_labels = 1/((test_labels+1)/test_dataset['pf_totalRaw'])#################################
 #test_labels = np.exp(test_labels)
+#test_labels = test_labels*test_max
 
-### Remove fake data across zero
+###################################
 results = pd.DataFrame({'gen_e':test_labels,'DNN':test_predictions})
 
-
+### analysis of the performance ###
 def plot_perf(results, cut,title):
   results = (results[cut] if str(cut) != 'None' else results)
   plt.hist2d(results['gen_e'], results['DNN'], bins=100, norm=LogNorm(), label=title)
@@ -237,22 +268,6 @@ plt.clf()
 plt.close()
 
 ###compare performance of the networks
-def plot_hist_compare(x,bins,labels,xlabel,fig_name):
-
-  fig = plt.figure()
-  plt.hist(x, 
-           bins,
-           density = True,
-           histtype = 'step', 
-           label = labels)
-
-  plt.xlabel(xlabel)
-  plt.grid(True)
-  plt.legend()
-  plt.show()
-  fig.savefig(fig_name)
-  plt.clf()
-  plt.close()
 
 ### compare resonpse ###
 res_DNN   = (compareData['pf_totalRaw']-compareData['gen_e'])/compareData['gen_e']
@@ -264,6 +279,8 @@ plot_hist_compare([compareData['pf_totalRaw'],test_predictions],25,['Raw','Keras
 ##### testing profile plot in python
 
 def profile_plot_compare(x1,y1,label_1,x2,y2,label_2,bins,xmin,xmax,xlabel,ylabel,fig_name):
+  pred_x = x2
+  pred_y = y2
   def gausMean(x,y,bins,xmin,xmax):
     df = pd.DataFrame({'x':x,'y':y})
     x_bins = np.linspace(xmin,xmax,bins+1)
@@ -289,15 +306,16 @@ def profile_plot_compare(x1,y1,label_1,x2,y2,label_2,bins,xmin,xmax,xlabel,ylabe
     bin_width = (bin_edges[1] - bin_edges[0])
     bin_centers = bin_edges[1:] - bin_width/2
     return bin_centers, means, standard_deviations
-
+    
   x1, y1 = gausMean(x1, y1, bins, xmin, xmax) # cut out tails
   x2, y2 = gausMean(x2, y2, bins, xmin, xmax) # cut out tails
   x1, y1, yerr1 = setupBins(x1, y1, bins, xmin, xmax)
   x2, y2, yerr2 = setupBins(x2, y2, bins, xmin, xmax)
-
   fig = plt.figure()
   plt.errorbar(x=x1, y=y1, yerr=yerr1, xerr=(xmax-xmin)/(2*bins), linestyle='none', marker='.', label =label_1)
   plt.errorbar(x=x2, y=y2, yerr=yerr2, xerr=(xmax-xmin)/(2*bins), linestyle='none', marker='.', label =label_2)
+  plt.hist2d(pred_x, pred_y, bins=bins, norm=LogNorm(), range=np.array([(xmin,xmax),(-0.5,1.5)]), label=label_2)
+  plt.colorbar()
   plt.xlabel(xlabel)
   plt.ylabel(ylabel)
   plt.grid(True)

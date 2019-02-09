@@ -199,6 +199,7 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
    
    //int ievent=0;
    std::string strtmp;
+   Char_t histo[100];
    //while (fReader.Next()) {
    for (int ievent =0 ; ievent < sTree->GetEntries(); ievent++){
      // Progress indicator 
@@ -212,29 +213,55 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
      // Loop over Gen
      //--------------------
      //std::cout<<"true: "<<true_<<"\t ecal: "<<ecal_<<"\t hcal: "<<hcal_<<std::endl;
+     if (true_ > 500) continue;
+     if ((ecal_+hcal_) < 0.5) continue; // illiminate power PF Algo performance
+     if( true_ == 0){
+       std::cout<<"ERROR!!! ---- true E: "<<true_<<"\t --- pf E: "<<ecal_+hcal_<<std::endl;
+       continue;
+     }
      gen_e = true_;
      p = p_;
      eta = fabs(eta_);
      pf_ecalRaw = ecal_;
      pf_hcalRaw = hcal_;
      pf_hoRaw = ho_;
-     pf_totalRaw = ecal_+hcal_+ho_;
-     
+     pf_totalRaw = pf_ecalRaw + pf_hcalRaw;
+
      if (eta < 1.5){
        strtmp = "Response_barrel";
        fill1DProf(v_hist, strtmp, gen_e, (pf_totalRaw - gen_e)/gen_e);
+       strtmp = "Response_barrelEvents";
+       fill1D(v_hist, strtmp, (pf_totalRaw - gen_e)/gen_e);
        strtmp = "RecHit Response barrel";
        fill1DProf(v_hist, strtmp, gen_e, (ecal_rec_ + hcal_rec_ - gen_e)/gen_e);
        strtmp = "PFClust Response barrel";
        fill1DProf(v_hist, strtmp, gen_e, (ecal_clust_ + hcal_clust_ - gen_e)/gen_e);
+
+       /// investigate each bin in the Response ///
+       int bins  = 50;
+       double x_min = 0;
+       double x_max = 500;
+       double bin_width = (x_max-x_min)/bins;
+       for (int i = 0; i*bin_width<x_max ;i++){
+	 sprintf(histo,"Response_bin_%d",i);
+	 if ( gen_e < (i+1)*bin_width && gen_e >= i*bin_width){
+	   fill1D(v_hist, histo, (pf_totalRaw - gen_e)/gen_e);
+	 }
+       }
      }
      if (eta > 1.5 && eta < 3.0){
        strtmp = "Response_endcap";
        fill1DProf(v_hist, strtmp, gen_e, (pf_totalRaw - gen_e)/gen_e);
      }
      strtmp = "Response_eta";
-     fill1DProf(v_hist, strtmp, eta, (pf_totalRaw - gen_e)/gen_e); 
+     fill1DProf(v_hist, strtmp, eta_, (pf_totalRaw - gen_e)/gen_e); 
+     strtmp = "TrueEnergyProf_eta";
+     fill1DProf(v_hist, strtmp, eta_, gen_e);
+     strtmp = "PFEnergyProf_eta";
+     fill1DProf(v_hist, strtmp, eta_, pf_totalRaw);
+
      
+
      t1.Fill();
    }
    // Event loop ends
@@ -248,7 +275,7 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
 
    t1.Write();
    v_hist->Write();
-   
+  
    file_out.ls();
    file_out.Close();
 
@@ -259,12 +286,12 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
 //
 //void ana_PFStudy(TString rootfile="../../HGCalTreeMaker/test/ttbar_10_4_D30_pt25.root",TString outfile="pfstudy_histograms.root",int maxevents=-1)
 // "D30" for D30 geo, "D28" for D28
-void ana_main(TString sampleType, TString testFile = "test_numEvent300000.root")
+void ana_main(TString sampleType, TString testFile = "PGun_2_500_10_0_3_upgrade2018_ECAL_pfB.root")
 {
   int maxevents=-1;
   // edit 
   bool test_file = true; // if testing setup with single file (will have to edit below for file choice)
-  TString outfile  = sampleType+"_histos_trees_recHit.root";
+  TString outfile  = sampleType+"_histos_trees_valid.root";
 
   std::vector<std::string> inputFiles;
   if (!test_file){
@@ -323,10 +350,17 @@ void bookHistograms(TList *v_hist)
   // Booking histograms
   // 
 
-  book1DProf(v_hist, "Response_barrel", 50, 0, 500, -0.5, 0.5);
+  book1DProf(v_hist, "Response_barrel", 50, 0, 500, -100.5, 100.5);
+  book1D(v_hist, "Response_barrelEvents", 50, -2, 2);
   book1DProf(v_hist, "Response_endcap", 50, 0, 500, -0.5, 0.5);
-  book1DProf(v_hist, "Response_eta", 30, 0, 3, -0.2, 0.2);
+  book1DProf(v_hist, "Response_eta", 60, -3, 3, -0.2, 0.2);
+  book1DProf(v_hist,"TrueEnergyProf_eta", 60, -3, 3, 0, 1000);
+  book1DProf(v_hist,"PFEnergyProf_eta", 60, -3, 3, 0, 1000);
 
+  for (int i =0 , bins = 50 ; i<bins; i++){
+    sprintf(histo,"Response_bin_%d",i); 
+    book1D(v_hist, histo, 50, -2, 2);
+  }
   book1DProf(v_hist, "RecHit Response barrel", 50, 0, 500, -0.5, 0.5);
   book1DProf(v_hist, "PFClust Response barrel", 50, 0, 500, -0.5, 0.5);
   
