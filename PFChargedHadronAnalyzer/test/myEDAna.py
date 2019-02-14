@@ -29,7 +29,7 @@ process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(5000)
+    input = cms.untracked.int32(-1)
 )
 
 # Input source
@@ -65,23 +65,27 @@ process.pfChargedHadronAnalyzer = cms.EDAnalyzer(
     ecalMax = cms.double(1E9),                  # Maximum ecal energy
     verbose = cms.untracked.bool(True),         # not used.
     #rootOutputFile = cms.string("PGun__2_200GeV__81X_upgrade2017_realistic_v22.root"),# the root tree
-    rootOutputFile = cms.string("step3_test.root"),# the root tree
+    rootOutputFile = cms.string("step3_trees.root"),# the root tree
 #   IsMinBias = cms.untracked.bool(False)
 )
 
 process.load("RecoParticleFlow.PFProducer.particleFlowSimParticle_cfi")
-#process.load("RecoParticleFlow.Configuration.HepMCCopy_cfi")
 
-process.particleFlowSimParticle.ParticleFilter = cms.PSet(
-        # Allow *ALL* protons with energy > protonEMin
-        protonEMin = cms.double(5000.0),
-        # Particles must have abs(eta) < etaMax (if close enough to 0,0,0)
-        etaMax = cms.double(5.3),
-        # Charged particles with pT < pTMin (GeV/c) are not simulated
-        chargedPtMin = cms.double(0.0),
-        # Particles must have energy greater than EMin [GeV]
-        EMin = cms.double(0.0)
-)
+from FastSimulation.Event.ParticleFilter_cfi import  ParticleFilterBlock
+process.particleFlowSimParticle.ParticleFilter = ParticleFilterBlock.ParticleFilter.copy()
+process.particleFlowSimParticle.ParticleFilter.chargedPtMin = cms.double(0.0)
+process.particleFlowSimParticle.ParticleFilter.EMin = cms.double(0.0)
+#process.load("FastSimulation.Event.ParticleFilter_cfi")
+#process.particleFlowSimParticle.ParticleFilter = cms.PSet(
+#        # Allow *ALL* protons with energy > protonEMin
+#        protonEMin = cms.double(5000.0),
+#        # Particles must have abs(eta) < etaMax (if close enough to 0,0,0)
+#        etaMax = cms.double(5.3),
+#        # Charged particles with pT < pTMin (GeV/c) are not simulated
+#        chargedPtMin = cms.double(0.0),
+#        # Particles must have energy greater than EMin [GeV]
+#        EMin = cms.double(0.0)
+#)
 
 process.genReReco = cms.Sequence(
     process.particleFlowSimParticle
@@ -90,8 +94,7 @@ process.genReReco = cms.Sequence(
 # Path and EndPath definitions
 
 process.EDA = cms.EndPath(process.pfChargedHadronAnalyzer)
-#process.gRR = cms.EndPath(process.genReReco)
+process.gRR = cms.EndPath(process.genReReco)
 
-#process.schedule = cms.Schedule(process.gRR,process.EDA)
-process.schedule = cms.Schedule(process.EDA)
-
+process.schedule = cms.Schedule(process.gRR,process.EDA)
+#process.schedule = cms.Schedule(process.EDA)
