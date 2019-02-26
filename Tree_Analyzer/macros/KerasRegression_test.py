@@ -2,6 +2,8 @@ from __future__ import division
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.python.keras import layers
+from tensorflow import set_random_seed
+set_random_seed(2)
 print(tf.__version__)
 
 import uproot
@@ -14,6 +16,7 @@ import numpy as np
 import math
 
 from tensorflow.python.keras import backend as K
+from keras import backend as k
 from tensorflow.python.ops import math_ops
 from keras.models import Sequential
 from keras.layers import Dense
@@ -24,6 +27,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn import preprocessing
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+config.gpu_options.per_process_gpu_memory_fraction = 0.5
+k.tensorflow_backend.set_session(tf.Session(config=config))
 
 def plot_hist_compare(x,bins,labels,xlabel,fig_name):
 
@@ -43,13 +51,22 @@ def plot_hist_compare(x,bins,labels,xlabel,fig_name):
   plt.close()
 
 ### Add training and target variables here
-inputVariables = ['gen_e','eta','pf_totalRaw','pf_ecalRaw','pf_hcalRaw']#,'pf_hoRaw']
+inputVariables = ['gen_e','eta', 'phi', 'pf_totalRaw','pf_ecalRaw','pf_hcalRaw', 
+                  'pf_hcalFrac1', 'pf_hcalFrac2', 'pf_hcalFrac3', 'pf_hcalFrac4', 'pf_hcalFrac5', 'pf_hcalFrac6', 'pf_hcalFrac7']#'charge']#,'pf_hoRaw'], "p", 'pt'
 targetVariable = 'gen_e'
-###
+### InputFiles
+#inputFiles = ["singlePi_histos_trees_new_samples.root","singlePi_histos_trees_valid.root"]
+inputFiles = ["singlePi_histos_treees_depth_samples.root"]
 ### Get data from inputTree
-inputTree = uproot.open("singlePi_histos_trees_valid.root")["t1"]
+def TChain(inputFile):
+  data = pd.DataFrame()
+  for inputFile in inputFiles:
 #print inputTree
-dataset = inputTree.pandas.df(inputVariables)
+    inputTree = uproot.open(inputFile)["t1"]
+    data = pd.concat([data,inputTree.pandas.df(inputVariables)], ignore_index=True) 
+  return data
+
+dataset = TChain(inputFiles)
 dataset = dataset.dropna()
 #print dataset[dataset['gen_e']>500]
 ### to directly compare to Raw
@@ -58,6 +75,8 @@ train_cut     = (dataset['pf_totalRaw']-dataset['gen_e'])/dataset['gen_e'] > -0.
 dataset = dataset[(my_cut) & (train_cut)]
 dataset = dataset.reset_index()
 
+dataset['H Hadron']  = ((dataset['pf_ecalRaw'] == 0) & (dataset['pf_hcalRaw'] > 0))*1
+dataset['EH Hadron'] = ((dataset['pf_ecalRaw'] > 0) & (dataset['pf_hcalRaw'] == 0))*1
 
 
 ##Prepare Data for training
@@ -84,7 +103,7 @@ dataset = pd.concat([temp_data, dataset[dataset['gen_e']>200]],ignore_index=Fals
 compareData = dataset.copy()
 #plot_hist_compare(dataset['gen_e'],25,'test','test','test')
 
-train_dataset = dataset.sample(frac=0.8,random_state=1)
+train_dataset = dataset.sample(frac=0.75,random_state=1)
 #train_cut     = (train_dataset['pf_totalRaw']-train_dataset['gen_e'])/train_dataset['gen_e'] > -0.9 ## dont train on bad data with response of -1 
 #train_dataset = train_dataset[train_cut]
 #train_dataset = dataset.sample(n=1000, random_state=0)
@@ -93,14 +112,19 @@ test_dataset  = test_dataset[test_dataset['gen_e']>=0]
 #print len(train_dataset[train_dataset['gen_e']>=0]), len(train_dataset)
 
 train_labels = train_dataset.pop(targetVariable)
-#train_labels = np.log(train_labels/train_dataset['pf_totalRaw'])###########
+#train_labels = np.log(train_dataset['pf_totalRaw']/train_labels)###########
 train_labels = (train_dataset['pf_totalRaw']/train_labels)-1####################
 #train_labels = np.log(train_labels)
 
 test_labels  = test_dataset.pop(targetVariable)
-#test_labels = np.log(test_labels/test_dataset['pf_totalRaw'])#############
+#test_labels = np.log(test_dataset['pf_totalRaw']/test_labels)#############
 test_labels = (test_dataset['pf_totalRaw']/test_labels)-1######################
 #test_labels = np.log(test_labels)
+
+train_spect = train_dataset[['H Hadron','EH Hadron']].copy()
+del train_dataset['H Hadron'],train_dataset['EH Hadron']
+test_spect = test_dataset[['H Hadron','EH Hadron']].copy()
+del test_dataset['H Hadron'],test_dataset['EH Hadron']
 
 
 ###
@@ -140,23 +164,28 @@ scaled_test_data = dropIndex(scale(test_dataset))
 ### Build the model
 def build_model():
   model = keras.Sequential([
-    layers.Dense(4, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.1), input_shape=[len(scaled_train_data.keys())]),# l1 0000
-    #keras.layers.Dropout(0.3), # 0
-    layers.Dense(8, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.1)),#15, l1 =.001
-    #keras.layers.Dropout(0.7),#0 
-    #layers.Dense(4, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.00)), #10, l1 = .01
-    #keras.layers.Dropout(0.5), # .49
+    layers.Dense(12, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.000), input_shape=[len(scaled_train_data.keys())]),# 4, relu, l1(0)
+    #keras.layers.Dropout(0.5), # 0
+    layers.Dense(32, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.000)),#16, relu, l2(0)
+    keras.layers.Dropout(0.7),# 0.5 
+    layers.Dense(4, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.0000)), #2, relu, l2(0)
+    #keras.layers.Dropout(0.5), # 0
+    #layers.Dense(16, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.0000)), #2, relu, l2(0)
+    #keras.layers.Dropout(0.5), # 0
     layers.Dense(1)
   ])
   #optimizer = tf.train.RMSPropOptimizer(0.001)
-  optimizer  = 'adam'
+  optimizer  = keras.optimizers.Adam(lr=.0001, decay= .0001 / 300) # lr = .0001, decay = .0001 / 200
   
   def RMSLE(y_true,y_pred):
     first_log = math_ops.log(K.clip(y_pred, K.epsilon(), None) + 1.)
     second_log = math_ops.log(K.clip(y_true, K.epsilon(), None) + 1.)
     return K.sqrt(K.mean(math_ops.square(first_log - second_log), axis=-1))
   
-  model.compile(loss='mae', # mae
+  def MSER(y_true,y_pred):
+    return K.mean(K.square(y_pred-y_true)+K.abs(y_pred-y_true),axis=-1)
+
+  model.compile(loss='mse', # mse
                 optimizer=optimizer,
                 metrics=['mae', 'mse'])
   return model
@@ -165,13 +194,14 @@ model = build_model()
 
 ###########################################
 ### Train the model
-EPOCHS = 40 # 30
+EPOCHS = 300 # 200
 
+early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5) # 10
 history = model.fit(
-  scaled_train_data, train_labels,
-  epochs=EPOCHS, batch_size=8192, # 10k
+  scaled_train_data, train_labels, # target is the response
+  epochs=EPOCHS, batch_size=5128, # 5128
   validation_data=(scaled_test_data,test_labels),
-  verbose=1)
+  verbose=1, callbacks=[early_stop])
 ###########################################
 ####Analyze the training history  
 #keras.utils.plot_model(model, to_file="model.png", show_shapes=True)
@@ -219,12 +249,12 @@ print("Testing set Mean Abs Error: {:5.2f} E".format(mae))
 test_predictions = model.predict(scaled_test_data).flatten()
 
 ###Recover meaningful predictions
-#test_predictions = np.exp(test_predictions)*test_dataset['pf_totalRaw']###############
+#test_predictions = 1/(np.exp(test_predictions))*test_dataset['pf_totalRaw']###############
 test_predictions = 1/((test_predictions+1)/test_dataset['pf_totalRaw'])#######################
 #test_predictions = np.exp(test_predictions)
 #test_predictions = test_predictions*test_max
 
-#test_labels = np.exp(test_labels)*test_dataset['pf_totalRaw']#########################
+#test_labels = 1/(np.exp(test_labels))*test_dataset['pf_totalRaw']#########################
 test_labels = 1/((test_labels+1)/test_dataset['pf_totalRaw'])#################################
 #test_labels = np.exp(test_labels)
 #test_labels = test_labels*test_max
@@ -336,6 +366,29 @@ profile_plot_compare(compareData['gen_e'], (compareData['pf_totalRaw']-compareDa
                      100, 0, 500,
                      "True [E]", "(Pred-True)/True [E]", "response_comparison.pdf")
 
+
+def EH_vs_E_plot(raw_Efrac, raw_Hfrac, corr_Efrac, corr_Hfrac, bins, label_raw, label_corr):
+  fig, [raw, corr] = plt.subplots(1, 2, figsize=(12, 6))
+  [temp.set_xlabel('H/T (GeV)') for temp in [raw,  corr]]
+  [temp.set_ylabel('E/T (GeV)') for temp in [raw,  corr]]
+  [temp.grid(True) for temp in [raw,  corr]]
+
+  raw_ = raw.hist2d(x=raw_Hfrac, y=raw_Efrac, bins=bins, norm=mpl.colors.LogNorm(vmin=1,vmax=1*10E5)
+, range=np.array([(0,1.5),(0,1.5)]))
+  raw.set_title(label_raw)
+  corr_ = corr.hist2d(x=corr_Hfrac, y=corr_Efrac, bins=bins,  norm=mpl.colors.LogNorm(vmin=1,vmax=1*10E5), range=np.array([(0,1.5),(0,1.5)]))
+  corr.set_title(label_corr)
+  fig.colorbar(corr_[3])
+  plt.show()
+  fig.savefig("EH_vs_E.pdf")
+  plt.clf()
+  plt.close()
+
+EH_vs_E_plot(test_dataset['pf_ecalRaw']/test_labels,test_dataset['pf_hcalRaw']/test_labels,
+             test_dataset['pf_ecalRaw']/test_predictions, test_dataset['pf_hcalRaw']/test_predictions,
+             50, 'Raw', 'Corrected')
+
+#def E_bin_response():
 ##### Debug low pt #####
 if False:
   for i, label in enumerate(test_labels):

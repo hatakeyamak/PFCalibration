@@ -117,6 +117,14 @@ PFChargedHadronAnalyzer::PFChargedHadronAnalyzer(const edm::ParameterSet& iConfi
   s->Branch("phi",&phi_,"phi/F");
   s->Branch("charge",&charge_,"charge/I");
 
+  s->Branch("hcalFrac1",&hcalFrac1_,"hcalFrac1/F");
+  s->Branch("hcalFrac2",&hcalFrac2_,"hcalFrac2/F");
+  s->Branch("hcalFrac3",&hcalFrac3_,"hcalFrac3/F");
+  s->Branch("hcalFrac4",&hcalFrac4_,"hcalFrac4/F");
+  s->Branch("hcalFrac5",&hcalFrac5_,"hcalFrac5/F");
+  s->Branch("hcalFrac6",&hcalFrac6_,"hcalFrac6/F");
+  s->Branch("hcalFrac7",&hcalFrac7_,"hcalFrac7/F");
+
   s->Branch("ecal_rec", &ecal_rec_,"ecal_rec/F");
   s->Branch("hcal_rec", &hcal_rec_,"hcal_rec/F");
 
@@ -372,6 +380,13 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       charge_=0;
       ecal_ = 0.;
       hcal_ = 0.;
+      hcalFrac1_ = 0.;
+      hcalFrac2_ = 0.;
+      hcalFrac3_ = 0.;
+      hcalFrac4_ = 0.;
+      hcalFrac5_ = 0.;
+      hcalFrac6_ = 0.;
+      hcalFrac7_ = 0.;
       dr_.clear();  //spandey Apr_27 dR
       Eecal_.clear();
       Ehcal_.clear();  
@@ -395,7 +410,16 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	//     cout<<"pID:" << pfcID_.back() << " ,|eta|:" << fabs(eta_) << " ,dR:" << dr_.back() << " ,Eecal:" << Eecal_.back() << " ,Ehcal:" << Ehcal_.back() <<endl;
 	// }
 	if ( pfc.particleId() == 4 && dR < 0.2 ) ecal_ += pfc.rawEcalEnergy();
-	if ( pfc.particleId() == 5 && dR < 0.4 ) hcal_ += pfc.rawHcalEnergy();
+	if ( pfc.particleId() == 5 && dR < 0.4 ){
+	  hcal_ += pfc.rawHcalEnergy();
+	  hcalFrac1_ += pfc.hcalDepthEnergyFraction(1);
+	  hcalFrac2_ += pfc.hcalDepthEnergyFraction(2);
+	  hcalFrac3_ += pfc.hcalDepthEnergyFraction(3);
+	  hcalFrac4_ += pfc.hcalDepthEnergyFraction(4);
+	  hcalFrac5_ += pfc.hcalDepthEnergyFraction(5);
+	  hcalFrac6_ += pfc.hcalDepthEnergyFraction(6); 
+	  hcalFrac7_ += pfc.hcalDepthEnergyFraction(7);
+	}
 	// if ( pfc.particleId() == 4  ) {  Eecal.push_back(pfc.rawEcalEnergy()); }
 	// if ( pfc.particleId() == 5  ) { Ehcal.push_back(pfc.rawHcalEnergy()); }
 
@@ -452,6 +476,14 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
     double ecalRaw = pfc.rawEcalEnergy();
     double hcalRaw = pfc.rawHcalEnergy();
     double hoRaw = pfc.rawHoEnergy();
+
+    double hcalFrac1 = pfc.hcalDepthEnergyFraction(1);
+    double hcalFrac2 = pfc.hcalDepthEnergyFraction(2);
+    double hcalFrac3 = pfc.hcalDepthEnergyFraction(3);
+    double hcalFrac4 = pfc.hcalDepthEnergyFraction(4);
+    double hcalFrac5 = pfc.hcalDepthEnergyFraction(5);
+    double hcalFrac6 = pfc.hcalDepthEnergyFraction(6); 
+    double hcalFrac7 = pfc.hcalDepthEnergyFraction(7);
 
 
     // h_phi->Fill(pfc.phi());   //qwerty Feb_14 2018
@@ -763,6 +795,14 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
     hcal_ = hcalRaw;
     ho_ = hoRaw;
 
+    hcalFrac1_ = hcalFrac1; 
+    hcalFrac2_ = hcalFrac2; 
+    hcalFrac3_ = hcalFrac3; 
+    hcalFrac4_ = hcalFrac4; 
+    hcalFrac5_ = hcalFrac5; 
+    hcalFrac6_ = hcalFrac6; 
+    hcalFrac7_ = hcalFrac7; 
+  
     //cout<<ecal_<<"   "<<hcal_<<
 
     charge_ = pfc.charge();
@@ -794,7 +834,7 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 
 //     }
     
-			    //  if(addP) { std::cout<<" !!!!===> No additionnal reconstructed particles "<<std::endl; }
+  			    //  if(addP) { std::cout<<" !!!!===> No additionnal reconstructed particles "<<std::endl; }
 
 //     if( isMBMC_ ) {
 //       float etaG, phiG, trueG; 
@@ -856,7 +896,7 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
     }
 
 
-
+  
 
     //Basic Ecal PF Clusters
     float ecal_clust_e = 0;
@@ -881,7 +921,7 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       
     SaveRecHits(iEvent, eta_, phi_ );
     s->Fill();
-
+  
     addDr.clear();
     addPdgId.clear();
     addEmE.clear();

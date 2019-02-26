@@ -31,7 +31,7 @@ process.maxEvents = cms.untracked.PSet(
 # Input source
 process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
-    fileNames = cms.untracked.vstring('root://cmseos.fnal.gov//store/user/hcal_upgrade/hatake/step1/PGun_step1_GEN_SIM_10_4_0_E2_500_v2/CRAB_PrivateMC/crab_PGun_step1_GEN_SIM_10_4_0_E2_500_v2/190110_180520/0000/step1_1.root'),
+    fileNames = cms.untracked.vstring('file:step1.root'),#'root://cmseos.fnal.gov//store/user/hcal_upgrade/hatake/step1/PGun_step1_GEN_SIM_10_4_0_E2_500_v2/CRAB_PrivateMC/crab_PGun_step1_GEN_SIM_10_4_0_E2_500_v2/190110_180520/0000/step1_1.root'),
     inputCommands = cms.untracked.vstring(
         'keep *', 
         'drop *_genParticles_*_*', 

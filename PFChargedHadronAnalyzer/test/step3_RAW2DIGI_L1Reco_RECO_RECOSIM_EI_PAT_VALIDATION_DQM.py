@@ -35,7 +35,7 @@ process.maxEvents = cms.untracked.PSet(
 # Input source
 process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring('root://se01.indiacms.res.in//store/user/spandey/step2/PGun_step2_DIGI_1002_2_200_Feb_12/CRAB_UserFiles/crab_PGun_step2_DIGI_1002_2_200_Feb_12/180212_110432/0000/step2_2.root'),
-    fileNames = cms.untracked.vstring(),
+    fileNames = cms.untracked.vstring('file:step2.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -45,7 +45,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('step3 nevts:100'),
+    annotation = cms.untracked.string('step3 nevts:10'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )

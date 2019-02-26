@@ -133,7 +133,7 @@ for x in range(0,10):
 
 ###########################################
 ### Train the model
-  EPOCHS = 300
+  EPOCHS = 2
 
   history = model.fit(
     scaled_train_data, train_labels,
