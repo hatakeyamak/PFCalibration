@@ -56,7 +56,7 @@ inputVariables = ['gen_e','eta', 'phi', 'pf_totalRaw','pf_ecalRaw','pf_hcalRaw',
 targetVariable = 'gen_e'
 ### InputFiles
 #inputFiles = ["singlePi_histos_trees_new_samples.root","singlePi_histos_trees_valid.root"]
-inputFiles = ["singlePi_histos_treees_depth_samples.root"]
+inputFiles = ["singlePi_histos_trees_depth_samples.root"]
 ### Get data from inputTree
 def TChain(inputFile):
   data = pd.DataFrame()
