@@ -33,7 +33,7 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:step2.root'),
+    fileNames = cms.untracked.vstring('file:/cms/data/store/user/hatake/step2/PGun_step2_GEN_SIM_10_2_11_E0_500_PU_v1/SinglePi/CMSSW_10_2_11_Step2_PU_v1/190225_144914/0000/step2_1.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
