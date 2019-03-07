@@ -51,7 +51,8 @@ def plot_hist_compare(x,bins,labels,xlabel,fig_name):
   plt.close()
 
 ### Add training and target variables here
-inputVariables = ['gen_e','eta', 'phi', 'pf_totalRaw','pf_ecalRaw','pf_hcalRaw', 
+inputVariables = ['gen_e',
+                  'eta', 'phi', 'pf_totalRaw','pf_ecalRaw','pf_hcalRaw',
                   'pf_hcalFrac1', 'pf_hcalFrac2', 'pf_hcalFrac3', 'pf_hcalFrac4', 'pf_hcalFrac5', 'pf_hcalFrac6', 'pf_hcalFrac7']#'charge']#,'pf_hoRaw'], "p", 'pt'
 targetVariable = 'gen_e'
 ### InputFiles
@@ -70,13 +71,15 @@ dataset = TChain(inputFiles)
 dataset = dataset.dropna()
 #print dataset[dataset['gen_e']>500]
 ### to directly compare to Raw
-my_cut = (abs(dataset['eta'])<1.5) & (dataset['pf_totalRaw'] >0) & (dataset['gen_e']>0) & (dataset['gen_e']<500)
+barrel_train = (abs(dataset['eta'])<1.5)
+endcap_train = (abs(dataset['eta'])< 2.4) & (abs(dataset['eta'])>1.6)
+my_cut = (abs(dataset['eta'])< 2.4) & (dataset['pf_totalRaw'] >0) & (dataset['gen_e']>0) & (dataset['gen_e']<500)
 train_cut     = (dataset['pf_totalRaw']-dataset['gen_e'])/dataset['gen_e'] > -0.90 ## dont train on bad data with response of -1 
 dataset = dataset[(my_cut) & (train_cut)]
 dataset = dataset.reset_index()
 
 dataset['H Hadron']  = ((dataset['pf_ecalRaw'] == 0) & (dataset['pf_hcalRaw'] > 0))*1
-dataset['EH Hadron'] = ((dataset['pf_ecalRaw'] > 0) & (dataset['pf_hcalRaw'] == 0))*1
+dataset['EH Hadron'] = ((dataset['pf_ecalRaw'] > 0) & (dataset['pf_hcalRaw'] > 0))*1
 
 
 ##Prepare Data for training
@@ -91,14 +94,12 @@ dataset['EH Hadron'] = ((dataset['pf_ecalRaw'] > 0) & (dataset['pf_hcalRaw'] == 
 #dataset = pd.concat([dataset,mirror_Data], ignore_index=True)
 ###
 ### define Test and Train Data as well as the target
-temp_data = dataset[dataset['gen_e'] <= 200]
-a = len(dataset[(dataset['gen_e']>200) & (dataset['gen_e']<=400)] )
-b = len(dataset[dataset['gen_e']<=200])
-temp_data = temp_data.sample(frac=int(a)/int(b),random_state=1)
+#temp_data = dataset[dataset['gen_e'] <= 200]
+#a = len(dataset[(dataset['gen_e']>200) & (dataset['gen_e']<=400)] )
+#b = len(dataset[dataset['gen_e']<=200])
+#temp_data = temp_data.sample(frac=int(a)/int(b),random_state=1)
+#dataset = pd.concat([temp_data, dataset[dataset['gen_e']>200]],ignore_index=False)
 
-#print 'tempData', temp_data
-
-dataset = pd.concat([temp_data, dataset[dataset['gen_e']>200]],ignore_index=False)
 #dataset = dataset.drop('index', axis=1)
 compareData = dataset.copy()
 #plot_hist_compare(dataset['gen_e'],25,'test','test','test')
@@ -121,10 +122,10 @@ test_labels  = test_dataset.pop(targetVariable)
 test_labels = (test_dataset['pf_totalRaw']/test_labels)-1######################
 #test_labels = np.log(test_labels)
 
-train_spect = train_dataset[['H Hadron','EH Hadron']].copy()
-del train_dataset['H Hadron'],train_dataset['EH Hadron']
-test_spect = test_dataset[['H Hadron','EH Hadron']].copy()
-del test_dataset['H Hadron'],test_dataset['EH Hadron']
+#train_spect = train_dataset[['H Hadron','EH Hadron']].copy()
+#del train_dataset['H Hadron'],train_dataset['EH Hadron']
+#test_spect = test_dataset[['H Hadron','EH Hadron']].copy()
+#del test_dataset['H Hadron'],test_dataset['EH Hadron']
 
 
 ###
@@ -164,18 +165,18 @@ scaled_test_data = dropIndex(scale(test_dataset))
 ### Build the model
 def build_model():
   model = keras.Sequential([
-    layers.Dense(12, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.000), input_shape=[len(scaled_train_data.keys())]),# 4, relu, l1(0)
+    layers.Dense(14, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.000), input_shape=[len(scaled_train_data.keys())]),# 4, relu, l1(0)
     #keras.layers.Dropout(0.5), # 0
-    layers.Dense(32, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.000)),#16, relu, l2(0)
-    keras.layers.Dropout(0.7),# 0.5 
-    layers.Dense(4, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.0000)), #2, relu, l2(0)
-    #keras.layers.Dropout(0.5), # 0
-    #layers.Dense(16, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.0000)), #2, relu, l2(0)
-    #keras.layers.Dropout(0.5), # 0
+    #layers.Dense(24, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.000)),#16, relu, l2(0)
+    #keras.layers.Dropout(0.5),# 0.5 
+    layers.Dense(28, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.0000)), #2, relu, l2(0)
+    keras.layers.Dropout(0.0), # 0
+    layers.Dense(28, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l1(0.0000)), #2, relu, l2(0)
+    keras.layers.Dropout(0.6), # 0
     layers.Dense(1)
   ])
   #optimizer = tf.train.RMSPropOptimizer(0.001)
-  optimizer  = keras.optimizers.Adam(lr=.0001, decay= .0001 / 300) # lr = .0001, decay = .0001 / 200
+  optimizer  = keras.optimizers.Adam(lr=.001, decay= .001 / 200) # lr = .0001, decay = .0001 / 200
   
   def RMSLE(y_true,y_pred):
     first_log = math_ops.log(K.clip(y_pred, K.epsilon(), None) + 1.)
@@ -196,12 +197,12 @@ model = build_model()
 ### Train the model
 EPOCHS = 300 # 200
 
-early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5) # 10
+#early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=20) # 10
 history = model.fit(
   scaled_train_data, train_labels, # target is the response
-  epochs=EPOCHS, batch_size=5128, # 5128
+  epochs=EPOCHS, batch_size=20512, # 5128
   validation_data=(scaled_test_data,test_labels),
-  verbose=1, callbacks=[early_stop])
+  verbose=1) #callbacks=[early_stop])
 ###########################################
 ####Analyze the training history  
 #keras.utils.plot_model(model, to_file="model.png", show_shapes=True)
@@ -261,6 +262,12 @@ test_labels = 1/((test_labels+1)/test_dataset['pf_totalRaw'])###################
 
 ###################################
 results = pd.DataFrame({'gen_e':test_labels,'DNN':test_predictions})
+
+compareData['Response'] = (compareData['pf_totalRaw'] - compareData['gen_e'])/compareData['gen_e']
+results['Response'] = (results['DNN']-results['gen_e'])/results['gen_e']
+results['EH Hadron']=test_dataset['EH Hadron']
+results['H Hadron']=test_dataset['H Hadron']
+
 
 ### analysis of the performance ###
 def plot_perf(results, cut,title):
@@ -344,7 +351,7 @@ def profile_plot_compare(x1,y1,label_1,x2,y2,label_2,bins,xmin,xmax,xlabel,ylabe
   fig = plt.figure()
   plt.errorbar(x=x1, y=y1, yerr=yerr1, xerr=(xmax-xmin)/(2*bins), linestyle='none', marker='.', label =label_1)
   plt.errorbar(x=x2, y=y2, yerr=yerr2, xerr=(xmax-xmin)/(2*bins), linestyle='none', marker='.', label =label_2)
-  plt.hist2d(pred_x, pred_y, bins=bins, norm=LogNorm(), range=np.array([(xmin,xmax),(-0.5,1.5)]), label=label_2)
+  plt.hist2d(pred_x, pred_y, bins=bins, norm=LogNorm(), range=np.array([(xmin,xmax),(-0.5,0.5)]), label=label_2)
   plt.colorbar()
   plt.xlabel(xlabel)
   plt.ylabel(ylabel)
@@ -356,15 +363,33 @@ def profile_plot_compare(x1,y1,label_1,x2,y2,label_2,bins,xmin,xmax,xlabel,ylabe
   plt.close()
 
 ### Pred/True vs True ###
-profile_plot_compare(compareData['gen_e'], compareData['pf_totalRaw']/compareData['gen_e'], 'Raw',
-                     test_labels, test_predictions/test_labels, 'Keras',
-                     100, 0, 500,
-                     "True [E]", "Pred/True [E]", "scale_comparison.pdf")
+#profile_plot_compare(compareData['gen_e'], compareData['pf_totalRaw']/compareData['gen_e'], 'Raw',
+#                     test_labels, test_predictions/test_labels, 'Keras',
+#                     100, 0, 500,
+#                     "True [E]", "Pred/True [E]", "scale_comparison.pdf")
 ### Response vs True ###
 profile_plot_compare(compareData['gen_e'], (compareData['pf_totalRaw']-compareData['gen_e'])/compareData['gen_e'], 'Raw',
                      test_labels, (test_predictions-test_labels)/test_labels, 'Keras',
                      100, 0, 500,
                      "True [E]", "(Pred-True)/True [E]", "response_comparison.pdf")
+
+### Handle EH and H seperately ###
+profile_plot_compare(compareData['gen_e'][compareData['EH Hadron'] == 1], compareData['Response'][compareData['EH Hadron'] == 1], 'Raw EH Had',
+                     results['gen_e'][results['EH Hadron'] == 1], results['Response'][results['EH Hadron']==1], 'Corr EH Had',
+                     100, 0, 500,
+                     "True [E]", "(Pred-True)/True [E]", "eh_response_comparison.pdf")
+
+profile_plot_compare(compareData['gen_e'][compareData['H Hadron'] == 1], compareData['Response'][compareData['H Hadron'] == 1], 'Raw H Had',
+                     results['gen_e'][results['H Hadron'] == 1], results['Response'][results['H Hadron']==1], 'Corr H Had',
+                     100, 0, 500,
+                     "True [E]", "(Pred-True)/True [E]", "h_response_comparison.pdf")
+
+### Response vs Eta ###
+
+profile_plot_compare(abs(compareData['eta']), (compareData['pf_totalRaw']-compareData['gen_e'])/compareData['gen_e'], 'Raw',
+                     abs(test_dataset['eta']), (test_predictions-test_labels)/test_labels, 'Keras',
+                     24, 0, 2.4,
+                     "Eta", "(Pred-True)/True [E]", "response_vs_eta.pdf")
 
 
 def EH_vs_E_plot(raw_Efrac, raw_Hfrac, corr_Efrac, corr_Hfrac, bins, label_raw, label_corr):
@@ -388,7 +413,25 @@ EH_vs_E_plot(test_dataset['pf_ecalRaw']/test_labels,test_dataset['pf_hcalRaw']/t
              test_dataset['pf_ecalRaw']/test_predictions, test_dataset['pf_hcalRaw']/test_predictions,
              50, 'Raw', 'Corrected')
 
-#def E_bin_response():
+def E_bin_response(raw_data, dnn_results, bins, labels,xmin,xmax,x_label,outputPDF):
+  Ebins = np.linspace(0,500,bins+1)
+  dnn_results['bin'] = np.digitize(dnn_results['gen_e'], Ebins)
+  raw_data['bin'] = np.digitize(raw_data['gen_e'], Ebins)
+  fig, response_plots = plt.subplots(int(round(bins/5)), int(round(bins/int(round(bins/5)))), figsize=(16, 10))
+  fig.subplots_adjust(left=0.03, right=0.97, bottom=0.05, top=0.95, hspace=0.4, wspace=0.4)
+  for i_bin,ax in enumerate(response_plots.flat):
+    hist_title = str((i_bin)*(500/bins))+"<=True E (GeV)<"+str((i_bin+1)*(500/bins))
+    ax.hist([raw_data['Response'][raw_data['bin'] == (i_bin+1)], dnn_results['Response'][dnn_results['bin'] == (i_bin+1)]],50, range=(xmin,xmax), density=True, histtype = 'step' , label=labels)
+    #ax.set_xlabel(x_label)
+    ax.set_title(hist_title)
+  plt.legend()
+  plt.show()
+  fig.savefig(outputPDF)
+  plt.clf()
+  plt.close()
+
+E_bin_response(compareData,results,20,['Raw','Keras'],-1.2,1.2,"(Pred-True)/True (GeV)","1DResponse.pdf")    
+
 ##### Debug low pt #####
 if False:
   for i, label in enumerate(test_labels):

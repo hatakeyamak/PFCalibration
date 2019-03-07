@@ -324,7 +324,7 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
    
    // output file for histograms
    std::cout<<"Output file: \t"<<outfile<<std::endl;
-   TFile file_out(outfile,"RECREATE");
+   TFile file_out("root/"+outfile,"RECREATE");
    t1.Write();
    v_hist->Write();
    
