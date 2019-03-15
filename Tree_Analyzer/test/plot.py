@@ -34,9 +34,9 @@ def plot_history(history,hist):
     mean.set_xlabel('Epoch')
     mean.set_ylabel('Mean Abs Error [E]')
     mean.grid(True)
-    mean.plot(hist['epoch'], hist['mean_absolute_error'],
+    mean.plot(hist['epoch'], hist['first_output_mean_absolute_error'],
               label='Train Error')
-    mean.plot(hist['epoch'], hist['val_mean_absolute_error'],
+    mean.plot(hist['epoch'], hist['val_first_output_mean_absolute_error'],
               label = 'Val Error')
   #mean.set_ylim(top=.3)
     mean.set_yscale('log')
@@ -45,9 +45,9 @@ def plot_history(history,hist):
     mean_square.set_xlabel('Epoch')
     mean_square.set_ylabel('Mean Square Error [$E^2$]')
     mean_square.grid(True)
-    mean_square.plot(hist['epoch'], hist['mean_squared_error'],
+    mean_square.plot(hist['epoch'], hist['first_output_mean_squared_error'],
                      label='Train Error')
-    mean_square.plot(hist['epoch'], hist['val_mean_squared_error'],
+    mean_square.plot(hist['epoch'], hist['val_first_output_mean_squared_error'],
                      label = 'Val Error')
     mean_square.set_yscale('log')
     mean_square.legend()

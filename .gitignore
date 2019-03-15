@@ -9,3 +9,4 @@ crab.log
 log/
 *.pdf
 *.png
+*/TrainOutput/

@@ -18,7 +18,7 @@ inputVariables = ['eta', #'charge']#,'pf_hoRaw'], "p", 'pt'
                   'phi', 
                   'pf_totalRaw','pf_ecalRaw','pf_hcalRaw']
 
-targetVariables = ['gen_e']
+targetVariables = ['gen_e','type'] ##### type corresponds to: 1 == E Hadron, 2 == EH Hadron, 3 == H Hadron
 inputFiles = ["singlePi_histos_trees_depth_samples.root"]
 #inputFiles = ["singlePi_histos_trees_new_samples.root","singlePi_histos_trees_valid.root"]
 
@@ -27,7 +27,7 @@ dataset, compareData = process_data.Get_tree_data(inputFiles,
                                                   inputVariables, targetVariables,               
                                                   withTracks = False, withDepth = True,
                                                   endcapOnly = False, barrelOnly = False,
-                                                  isTrainProbe = True)
+                                                  isTrainProbe = False)
                
 ### prepare test and training data
 train_data, test_data, train_labels, test_labels = process_data.PreProcess(dataset, targetVariables)
@@ -42,7 +42,9 @@ test_predictions, test_labels = process_data.PostProcess(test_predictions, test_
 ##############################################################
 ########## TRAINING ANALYSIS 
 results = test_data.copy()
-results['gen_e'] = test_labels
+for variable in targetVariables:
+    results[variable] = test_labels[variable]
+
 results['DNN'] = test_predictions
 
 
@@ -71,13 +73,13 @@ plot.profile_plot_compare(compareData['gen_e'], compareData['Response'], 'Raw',
                           "True [E]", "(Pred-True)/True [E]", "pdf/response_comparison.pdf")
 
 ### Handle EH and H seperately ###
-plot.profile_plot_compare(compareData['gen_e'][compareData['EH Hadron'] == 1], compareData['Response'][compareData['EH Hadron'] == 1], 'Raw EH Had',
-                          results['gen_e'][results['EH Hadron'] == 1], results['Response'][results['EH Hadron']==1], 'Corr EH Had',
+plot.profile_plot_compare(compareData['gen_e'][compareData['type'] == 1], compareData['Response'][compareData['type'] == 1], 'Raw EH Had',
+                          results['gen_e'][results['type'] == 1], results['Response'][results['type']==1], 'Corr EH Had',
                           100, 0, 500,
                           "True [E]", "(Pred-True)/True [E]", "pdf/eh_response_comparison.pdf")
 
-plot.profile_plot_compare(compareData['gen_e'][compareData['H Hadron'] == 1], compareData['Response'][compareData['H Hadron'] == 1], 'Raw H Had',
-                          results['gen_e'][results['H Hadron'] == 1], results['Response'][results['H Hadron']==1], 'Corr H Had',
+plot.profile_plot_compare(compareData['gen_e'][compareData['type'] == 2], compareData['Response'][compareData['type'] == 2], 'Raw H Had',
+                          results['gen_e'][results['type'] == 2], results['Response'][results['type']==2], 'Corr H Had',
                           100, 0, 500,
                           "True [E]", "(Pred-True)/True [E]", "pdf/h_response_comparison.pdf")
 

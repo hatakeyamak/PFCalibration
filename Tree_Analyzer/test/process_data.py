@@ -19,7 +19,9 @@ def Get_tree_data(inputFiles,inputVariables, targetVariables,
         for inputFile in inputFiles:
             print "Opening file: "+str(inputFile)
             inputTree = uproot.open("root/"+inputFile)["t1"]
-            data = pd.concat([data,inputTree.pandas.df(inputVariables+targetVariables)], ignore_index=True) 
+            variables_ = []
+            variables_ = list(variable for variable in (inputVariables+targetVariables) if variable in inputTree.keys())
+            data = pd.concat([data,inputTree.pandas.df(variables_)], ignore_index=True) 
         return data
 
     dataset = TChain(inputFiles)
@@ -37,9 +39,11 @@ def Get_tree_data(inputFiles,inputVariables, targetVariables,
         barrel_train = (abs(dataset['eta'])<1.5)
         dataset = dataset[barrel_train]
     dataset = dataset.reset_index()
-
-    dataset['H Hadron']  = ((dataset['pf_ecalRaw'] == 0) & (dataset['pf_hcalRaw'] > 0))*1
-    dataset['EH Hadron'] = ((dataset['pf_ecalRaw'] > 0) & (dataset['pf_hcalRaw'] > 0))*1
+    
+    dataset['type'] = np.nan
+    dataset['type'][(dataset['pf_ecalRaw'] > 0) & (dataset['pf_hcalRaw'] == 0)] = 0 ## E  Hadron
+    dataset['type'][(dataset['pf_ecalRaw'] > 0) & (dataset['pf_hcalRaw'] > 0)] = 1  ## EH Hadron
+    dataset['type'][(dataset['pf_ecalRaw'] == 0) & (dataset['pf_hcalRaw'] > 0)] = 2 ## H  Hadron
 
     if (isTrainProbe):
         dataset = dataset.sample(frac=.25, random_state=1)
@@ -54,22 +58,30 @@ def PreProcess(dataset, targetVariables):
     test_dataset  = dataset.drop(train_dataset.index)
     test_dataset  = test_dataset[test_dataset['gen_e']>=0]
     
-    train_labels = train_dataset.pop(targetVariables[0]) ####### FIX ME #######
-    test_labels  = test_dataset.pop(targetVariables[0])  ####### FIX ME #######
-    #train_labels = (train_dataset['pf_totalRaw']/train_labels)-1
+    train_labels = pd.DataFrame()
+    test_labels = pd.DataFrame()
+    for key in dataset.keys():
+        if str(key) in targetVariables: 
+            train_labels[key] = train_dataset[key].copy()
+            del train_dataset[key]
+            test_labels[key] = test_dataset[key].copy()
+            del test_dataset[key]
+            
+    print train_labels.tail()
+    train_labels['gen_e'] = (train_dataset['pf_totalRaw']/train_labels['gen_e'])-1
 #test_labels = np.log(test_dataset['pf_totalRaw']/test_labels)#############
-    #test_labels = (test_dataset['pf_totalRaw']/test_labels)-1######################
+    test_labels['gen_e'] = (test_dataset['pf_totalRaw']/test_labels['gen_e'])-1######################
 
     return train_dataset, test_dataset, train_labels, test_labels
 
 def PostProcess(test_predictions, test_data, test_labels):
     #test_predictions = 1/(np.exp(test_predictions))*test_dataset['pf_totalRaw']###############
-    #test_predictions = 1/((test_predictions+1)/test_data['pf_totalRaw'])#######################
+    test_predictions = 1/((test_predictions+1)/test_data['pf_totalRaw'])#######################
 #test_predictions = np.exp(test_predictions)
 #test_predictions = test_predictions*test_max
     
 #test_labels = 1/(np.exp(test_labels))*test_dataset['pf_totalRaw']#########################
-    #test_labels = 1/((test_labels+1)/test_data['pf_totalRaw'])#################################
+    test_labels['gen_e'] = 1/((test_labels['gen_e']+1)/test_data['pf_totalRaw'])#################################
 #test_labels = np.exp(test_labels)
 #test_labels = test_labels*test_max
 
