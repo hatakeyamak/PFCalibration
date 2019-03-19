@@ -27,7 +27,8 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TVector3.h>
-
+#include <TH1.h>
+#include <TH2.h>
 #include <math.h>
 
 #include "SimDataFormats/CaloHit/interface/PCaloHit.h"
@@ -115,8 +116,33 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   float true_,p_,ecal_,hcal_,eta_,phi_,ho_;
   float etaEcal_,phiEcal_;
   int charge_;
-
+  std::vector<float> dr_,Eecal_,Ehcal_,pfcID_;
   size_t orun,oevt,olumiBlock,otime;
+
+  /* TH1F* h_phi = new TH1F("h_phi","phi w/o cut",90,-4.0,4.0); */
+
+
+  /* TH2F* h_pix_phi = new TH2F("h_pix_phi","Npix vs phi",90,-4.0,4.0,10,0,10); */
+
+
+  /* TH2F* h_pix_phi_valid_hits = new TH2F("h_pix_phi_valid_hits","Npix vs phi before iteration",90,-4.0,4.0,10,0,10); */
+
+  /* TH2F* h_pix_phi_Barrel = new TH2F("h_pix_phi_barrel","Npix vs phi in barrel",90,-4.0,4.0,10,0,10); */
+  /* TH2F* h_pix_phi_inTrack_EC = new TH2F("h_pix_phi_inTrack_EC","Npix vs phi EC,in tracker",90,-4.0,4.0,10,0,10); */
+  /* TH2F* h_pix_phi_outTrack_EC = new TH2F("h_pix_phi_outTrack_EC","Npix vs phi EC,outside tracker",90,-4.0,4.0,10,0,10); */
+
+
+  /* TH2F* h_hit_phi_Barrel = new TH2F("h_hit_phi_barrel","Nhit vs phi in barrel",90,-4.0,4.0,50,0,50); */
+  /* TH2F* h_hit_phi_inTrack_EC = new TH2F("h_hit_phi_inTrack_EC","Nhit vs phi EC,in tracker",90,-4.0,4.0,50,0,50); */
+  /* TH2F* h_hit_phi_outTrack_EC = new TH2F("h_hit_phi_outTrack_EC","Nhit vs phi EC,outside tracker",90,-4.0,4.0,10,0,10); */
+
+
+  /* TH1F* h_phi_1 = new TH1F("h_phi_1","phi w/o cut",90,-4.0,4.0); */
+  /* TH1F* h_phi_2 = new TH1F("h_phi_2","phi w/o cut",90,-4.0,4.0); */
+  /* TH1F* h_phi_3 = new TH1F("h_phi_3","phi w/o cut",90,-4.0,4.0); */
+  /* TH1F* h_phi_4 = new TH1F("h_phi_4","phi w/o cut",90,-4.0,4.0); */
+  /* TH1F* h_phi_5 = new TH1F("h_phi_5","phi w/o cut",90,-4.0,4.0); */
+
   
   edm::RunNumber_t run;
   edm::EventNumber_t evt;

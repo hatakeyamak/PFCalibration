@@ -95,7 +95,11 @@ PFChargedHadronAnalyzer::PFChargedHadronAnalyzer(const edm::ParameterSet& iConfi
   s->Branch("eta",&eta_,"eta/F");  
   s->Branch("phi",&phi_,"phi/F");
   s->Branch("charge",&charge_,"charge/I");
-  
+
+  s->Branch("dr",&dr_);  //spandey Apr_27 dR
+  s->Branch("Eecal",&Eecal_);  //spandey Apr_27 dR
+  s->Branch("Ehcal",&Ehcal_);  //spandey Apr_27 dR
+  s->Branch("pfcID",&pfcID_);  //spandey Apr_27 dR
 
   s->Branch("pfcs",&pfcsID);
 
@@ -190,6 +194,25 @@ PFChargedHadronAnalyzer::~PFChargedHadronAnalyzer() {
 
   tf1->cd();
   s->Write();
+  // h_phi->Write();   //qwerty feb_14 2018
+  // h_phi_1->Write();   //qwerty feb_15 2018
+  // h_phi_2->Write();   //qwerty feb_15 2018
+  // h_phi_3->Write();   //qwerty feb_15 2018
+  // h_phi_4->Write();   //qwerty feb_15 2018
+  // h_phi_5->Write();   //qwerty feb_15 2018
+  // h_pix_phi->Write();  //qwerty feb_15 2018
+
+  // h_pix_phi_valid_hits->Write();  //qwerty feb_16 2018
+
+  // h_pix_phi_Barrel->Write();  //qwerty feb_15 2018
+  // h_pix_phi_inTrack_EC->Write();  //qwerty feb_15 2018
+  // //h_pix_phi_outTrack_EC->Write();  //qwerty feb_15 2018
+
+  // h_hit_phi_Barrel->Write();  //qwerty feb_15 2018
+  // h_hit_phi_inTrack_EC->Write();  //qwerty feb_15 2018
+  //h_hit_phi_outTrack_EC->Write();  //qwerty feb_15 2018
+
+
   tf1->Write();
   tf1->Close();  
 
@@ -262,6 +285,10 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
   pfcsID.clear();
 
   charge_=0;
+  dr_.clear();
+  Eecal_.clear();
+  Ehcal_.clear();  
+  pfcID_.clear();
 
   if(isMBMC_)
     isSimu=false;
@@ -304,19 +331,44 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       eta_ = tpatecal.positionREP().Eta();
       if ( fabs(eta_) < 1E-10 ) return; 
       phi_ = tpatecal.positionREP().Phi();
+      // h_phi->Fill(phi_);    //qwerty Feb_14 2018
+      // h_phi_1->Fill(phi_);    //qwerty Feb_15 2018
+      // h_phi_2->Fill(phi_);    //qwerty Feb_15 2018
+      // h_phi_3->Fill(phi_);    //qwerty Feb_15 2018
+      // h_phi_4->Fill(phi_);    //qwerty Feb_15 2018
+      // h_phi_5->Fill(phi_);    //qwerty Feb_15 2018
       true_ = std::sqrt(tpatecal.momentum().Vect().Mag2());
       p_ = 0.;
       charge_=0;
       ecal_ = 0.;
       hcal_ = 0.;
+      dr_.clear();  //spandey Apr_27 dR
+      Eecal_.clear();
+      Ehcal_.clear();  
+      pfcID_.clear();
+      
+      //cout<<"***********************"<<endl;
       for( CI ci  = pfCandidates->begin(); 
 	   ci!=pfCandidates->end(); ++ci)  {
 	const reco::PFCandidate& pfc = *ci;
 	double deta = eta_ - pfc.eta();
 	double dphi = dPhi(phi_, pfc.phi() );
 	double dR = std::sqrt(deta*deta+dphi*dphi);
+	if ( dR < 1.2 ) {
+	  dr_.push_back(dR);   //spandey Apr_27 dR
+	  pfcID_.push_back(pfc.particleId());   //spandey Apr_27 dR
+	  Eecal_.push_back(pfc.rawEcalEnergy());  //spandey Apr_27 dR
+	  Ehcal_.push_back(pfc.rawHcalEnergy());  //spandey Apr_27 dR
+	}
+	  //cout<<"pID:" << pfcID_.back() << " ,|eta|:" << fabs(eta_) << " ,dR:" << dr_.back() << " ,Eecal:" << Eecal_.back() << " ,Ehcal:" << Ehcal_.back() <<endl;
+	//   if (pfc.particleId() == 5 && pfc.rawEcalEnergy() != 0)
+	//     cout<<"pID:" << pfcID_.back() << " ,|eta|:" << fabs(eta_) << " ,dR:" << dr_.back() << " ,Eecal:" << Eecal_.back() << " ,Ehcal:" << Ehcal_.back() <<endl;
+	// }
 	if ( pfc.particleId() == 4 && dR < 0.2 ) ecal_ += pfc.rawEcalEnergy();
 	if ( pfc.particleId() == 5 && dR < 0.4 ) hcal_ += pfc.rawHcalEnergy();
+	// if ( pfc.particleId() == 4  ) {  Eecal.push_back(pfc.rawEcalEnergy()); }
+	// if ( pfc.particleId() == 5  ) { Ehcal.push_back(pfc.rawHcalEnergy()); }
+
       }
             
       s->Fill();
@@ -370,8 +422,17 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
     double ecalRaw = pfc.rawEcalEnergy();
     double hcalRaw = pfc.rawHcalEnergy();
     double hoRaw = pfc.rawHoEnergy();
+
+
+    // h_phi->Fill(pfc.phi());   //qwerty Feb_14 2018
+    // if(hcalRaw > 0)
+    //   cout<<"Non Zero Hcal ="<<hcalRaw<<endl;
+
+
     if ( ecalRaw + hcalRaw < hcalMin_ ) continue;
     nCh[3]++;
+
+    // h_phi_1->Fill(pfc.phi());   //qwerty Feb_15 2018
 
     //cout<<endl<<endl<<" new event "<<endl;
     // Find the corresponding PF block elements
@@ -434,6 +495,9 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
     if ( nTracks != 1 ) continue;
     nCh[4]++;
 
+    // h_phi_2->Fill(pfc.phi());   //qwerty Feb_15 2018
+
+
     // Characteristics of the track
     const reco::PFBlockElementTrack& et =
       dynamic_cast<const reco::PFBlockElementTrack &>( elements[iTrack] );
@@ -467,27 +531,30 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       emHitY.push_back( tmp );
       emHitZ.push_back( tmp );
 
-      if(isMBMC_ || isSimu) {
-	const std::vector< reco::PFRecHitFraction > erh=eecal.clusterRef()->recHitFractions();
-	for(unsigned int ieh=0;ieh<erh.size();ieh++) {
+
+      //std::cout<<"***********LOOK AT ME"<<std::endl;
+      // if(isMBMC_ || isSimu) {
+      // 	const std::vector< reco::PFRecHitFraction > erh=eecal.clusterRef()->recHitFractions();
+      // 	for(unsigned int ieh=0;ieh<erh.size();ieh++) {
 	  
-	  emHitF[ii].push_back( erh[ieh].fraction() );
+      // 	  emHitF[ii].push_back( erh[ieh].fraction() );
 	  
-	  emHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
+      // 	  emHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
 	  
 
-	  // cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<
-	  //   erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().Eta()
-	  //     <<"  "<<erh[ieh].recHitRef()->position().Phi()<<endl;
-	  bool isEB= erh[ieh].recHitRef()->layer()==-1;
-	  emHitX[ii].push_back( isEB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
-	  emHitY[ii].push_back( isEB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
-	  emHitZ[ii].push_back( isEB?0:erh[ieh].recHitRef()->position().z() );
+      // 	  // cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<
+      // 	  //   erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().Eta()
+      // 	  //     <<"  "<<erh[ieh].recHitRef()->position().Phi()<<endl;
+      // 	  bool isEB= erh[ieh].recHitRef()->layer()==-1;
+      // 	  emHitX[ii].push_back( isEB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
+      // 	  emHitY[ii].push_back( isEB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
+      // 	  emHitZ[ii].push_back( isEB?0:erh[ieh].recHitRef()->position().z() );
 	  
-	}
-      }
+      // 	}
+      // }
 
     }
+    //std::cout<<"HOW ABOUT NOW"<<std::endl;
     //HCAL element
       for(unsigned int ii=0;ii<nHcal;ii++) {
 	const reco::PFBlockElementCluster& ehcal =
@@ -520,25 +587,25 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	hadHitY.push_back( tmp );
 	hadHitZ.push_back( tmp );
 
-	 if(isMBMC_ || isSimu) {
-	  const std::vector< reco::PFRecHitFraction > erh=ehcal.clusterRef()->recHitFractions();
-	  for(unsigned int ieh=0;ieh<erh.size();ieh++) {
+	//  if(isMBMC_ || isSimu) {
+	//   const std::vector< reco::PFRecHitFraction > erh=ehcal.clusterRef()->recHitFractions();
+	//   for(unsigned int ieh=0;ieh<erh.size();ieh++) {
 
-	    hadHitF[ii].push_back( erh[ieh].fraction() );
+	//     hadHitF[ii].push_back( erh[ieh].fraction() );
       
-	    hadHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
+	//     hadHitE[ii].push_back(  erh[ieh].recHitRef()->energy() );
       
-	    // cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<
-	    //   erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().Eta()
-	    // 	<<"  "<<erh[ieh].recHitRef()->position().Phi()<<endl;
+	//     // cout<<" rechit "<<ieh<<" =====> "<<erh[ieh].recHitRef()->energy()<<"  "<<
+	//     //   erh[ieh].fraction()<<" / "<<erh[ieh].recHitRef()->position().Eta()
+	//     // 	<<"  "<<erh[ieh].recHitRef()->position().Phi()<<endl;
 
-	    bool isHB= erh[ieh].recHitRef()->layer()==1;
-	    hadHitX[ii].push_back( isHB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
-	    hadHitY[ii].push_back( isHB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
-	    hadHitZ[ii].push_back( isHB?0:erh[ieh].recHitRef()->position().z() );
+	//     bool isHB= erh[ieh].recHitRef()->layer()==1;
+	//     hadHitX[ii].push_back( isHB?erh[ieh].recHitRef()->position().eta() :erh[ieh].recHitRef()->position().x() );
+	//     hadHitY[ii].push_back( isHB?erh[ieh].recHitRef()->position().phi() :erh[ieh].recHitRef()->position().y() );
+	//     hadHitZ[ii].push_back( isHB?0:erh[ieh].recHitRef()->position().z() );
 	  
-	  }
-	}
+	//   }
+	// }
 
       }
 
@@ -547,6 +614,10 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       if ( p < pMin_ || pt < ptMin_ ) continue;
       nCh[5]++;
     
+
+
+      // h_phi_3->Fill(pfc.phi());   //qwerty Feb_15 2018
+
     // Count the number of valid hits (first three iteration only)
     //unsigned int nHits = et.trackRef()->found();
     unsigned int tobN = 0;
@@ -555,35 +626,72 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
     unsigned int tidN = 0;
     unsigned int pxbN = 0;
     unsigned int pxdN = 0;
+    unsigned int validPix = 0;
+    unsigned int validTrackerHits = 0;
     const reco::HitPattern& hp = et.trackRef()->hitPattern();
+
+    // h_pix_phi_valid_hits->Fill(phi,hp.numberOfValidPixelHits());
+    validPix = hp.numberOfValidPixelHits();
+    validTrackerHits = hp.numberOfValidTrackerHits();
+
     switch ( et.trackRef()->algo() ) {
     case TrackBase::initialStep:
-    case TrackBase::lowPtTripletStep:
-    case TrackBase::pixelPairStep:
-    case TrackBase::detachedTripletStep:
       tobN += hp.numberOfValidStripTOBHits();
       tecN += hp.numberOfValidStripTECHits();
       tibN += hp.numberOfValidStripTIBHits();
       tidN += hp.numberOfValidStripTIDHits();
       pxbN += hp.numberOfValidPixelBarrelHits(); 
       pxdN += hp.numberOfValidPixelEndcapHits(); 
+      //validPix += hp.numberOfValidPixelHits();
       break;
+    case TrackBase::lowPtQuadStep:
+    case TrackBase::highPtTripletStep:
+    case TrackBase::lowPtTripletStep:
+      // tobN += hp.numberOfValidStripTOBHits();
+      // tecN += hp.numberOfValidStripTECHits();
+      // tibN += hp.numberOfValidStripTIBHits();
+      // tidN += hp.numberOfValidStripTIDHits();
+      // pxbN += hp.numberOfValidPixelBarrelHits(); 
+      // pxdN += hp.numberOfValidPixelEndcapHits(); 
+      // validPix += hp.numberOfValidPixelHits();
+      // break;
+    case TrackBase::detachedQuadStep:
+    case TrackBase::detachedTripletStep:
+    case TrackBase::pixelPairStep:
     case TrackBase::mixedTripletStep:
     case TrackBase::pixelLessStep:
     case TrackBase::tobTecStep:
     case TrackBase::jetCoreRegionalStep:
-    case TrackBase::muonSeededStepInOut:
-    case TrackBase::muonSeededStepOutIn:
     default:
       break;
     }
-    int inner = pxbN+pxdN;
-    int outer = tibN+tobN+tidN+tecN;
+    //int inner = pxbN+pxdN;
+    int inner = validPix;
     
+    //int outer = tibN+tobN+tidN+tecN;
+    int outer = validTrackerHits;
+    
+    // h_pix_phi->Fill(phi,inner);
+   
+
+    // if(fabs(eta) < 1.5) {
+    //   h_pix_phi_Barrel->Fill(phi,inner);
+    //   h_hit_phi_Barrel->Fill(phi,inner+outer);
+    // }
+    // else if(fabs(eta) > 1.5 && fabs(eta) < 2.5) {
+    //   h_pix_phi_inTrack_EC->Fill(phi,inner);
+    //   h_hit_phi_inTrack_EC->Fill(phi,inner+outer);
+    // }
+
+
+
     // // Number of pixel hits
       if ( inner < nPixMin_ ) continue;
       nCh[6]++;
     
+      // h_phi_4->Fill(pfc.phi());   //qwerty Feb_15 2018
+
+
     // Number of tracker hits (eta-dependent cut)
     bool trackerHitOK = false;
     double etaMin = 0.;
@@ -598,6 +706,8 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       if ( !trackerHitOK ) continue;
       nCh[7]++;
     
+      // h_phi_5->Fill(pfc.phi());   //qwerty Feb_15 2018
+
     // Selects only ECAL MIPs
     if ( ecalRaw > ecalMax_ ) continue;
     nCh[8]++;
