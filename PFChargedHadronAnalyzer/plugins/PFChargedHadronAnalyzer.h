@@ -134,6 +134,7 @@ class PFChargedHadronAnalyzer : public edm::EDAnalyzer {
   TTree* s;
   
   float true_,p_,ecal_,hcal_,eta_,phi_,ho_;
+  float corrHcal_,corrEcal_;
   float hcalFrac1_,hcalFrac2_,hcalFrac3_,hcalFrac4_,hcalFrac5_,hcalFrac6_,hcalFrac7_;
   float etaEcal_,phiEcal_;
   float ecal_rec_,hcal_rec_;
