@@ -140,10 +140,10 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
 
    //fReader.SetTree(ch);  //the tree reader (Defined in fReader.h)
    TTree* sTree = (TTree*)ch;
-   Float_t true_, p_, eta_, phi_, ecal_, hcal_, ho_, ecal_rec_, hcal_rec_, ecal_clust_, hcal_clust_;
+   Float_t true_, p_, eta_, phi_, ecal_, hcal_, ho_, corrEcal_, corrHcal_, ecal_rec_, hcal_rec_, ecal_clust_, hcal_clust_;
    Float_t hcalFrac1_, hcalFrac2_, hcalFrac3_, hcalFrac4_, hcalFrac5_, hcalFrac6_, hcalFrac7_;
    Int_t charge_;
-   TBranch *b_true, *b_p, *b_eta, *b_phi, *b_ecal, *b_hcal, *b_ho, *b_ecal_rec_, *b_hcal_rec_, *b_ecal_clust_, *b_hcal_clust_, *b_charge_;
+   TBranch *b_true, *b_p, *b_eta, *b_phi, *b_ecal, *b_hcal, *b_ho, *b_corrEcal, *b_corrHcal, *b_ecal_rec_, *b_hcal_rec_, *b_ecal_clust_, *b_hcal_clust_, *b_charge_;
    TBranch *b_hcalFrac1, *b_hcalFrac2, *b_hcalFrac3, *b_hcalFrac4, *b_hcalFrac5, *b_hcalFrac6, *b_hcalFrac7;
    //std::vector<float> *Eecal_;
    //std::vector<float> *Ehcal_;
@@ -159,6 +159,8 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
    sTree->SetBranchAddress("phi", &phi_, &b_phi);
    sTree->SetBranchAddress("ecal", &ecal_, &b_ecal);
    sTree->SetBranchAddress("hcal", &hcal_, &b_hcal);
+   sTree->SetBranchAddress("corrEcal", &corrEcal_, &b_corrEcal);
+   sTree->SetBranchAddress("corrHcal", &corrHcal_, &b_corrHcal);
    sTree->SetBranchAddress("ho", &ho_, &b_ho);		   
    sTree->SetBranchAddress("hcalFrac1", &hcalFrac1_, &b_hcalFrac1);
    sTree->SetBranchAddress("hcalFrac2", &hcalFrac2_, &b_hcalFrac2);
@@ -189,7 +191,7 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
    // Set up output tree
    //
    TTree t1("t1","a simple Tree with simple variables");
-   Float_t gen_e, p, eta, phi, pt, pf_ecalRaw, pf_hcalRaw, pf_hoRaw, pf_totalRaw;
+   Float_t gen_e, p, eta, phi, pt, pf_ecalRaw, pf_hcalRaw, pf_ecal, pf_hcal, pf_hoRaw, pf_totalRaw, pf_total;
    Float_t pf_hcalFrac1, pf_hcalFrac2, pf_hcalFrac3, pf_hcalFrac4, pf_hcalFrac5, pf_hcalFrac6, pf_hcalFrac7;
 
    Int_t charge;
@@ -200,8 +202,11 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
    t1.Branch("pt",  &pt,  "pt/F");
    t1.Branch("pf_ecalRaw",&pf_ecalRaw,"pf_ecalRaw/F");
    t1.Branch("pf_hcalRaw",&pf_hcalRaw,"pf_hcalRaw/F");
+   t1.Branch("pf_ecal",&pf_ecal,"pf_ecal/F");
+   t1.Branch("pf_hcal",&pf_hcal,"pf_hcal/F");
    t1.Branch("pf_hoRaw",&pf_hoRaw,"pf_hoRaw/F");
    t1.Branch("pf_totalRaw",&pf_totalRaw,"pf_totalRaw/F");
+   t1.Branch("pf_total",&pf_total,"pf_total/F");
    t1.Branch("pf_hcalFrac1",&pf_hcalFrac1,"pf_hcalFrac1/F");
    t1.Branch("pf_hcalFrac2",&pf_hcalFrac2,"pf_hcalFrac2/F");
    t1.Branch("pf_hcalFrac3",&pf_hcalFrac3,"pf_hcalFrac3/F");
@@ -241,8 +246,6 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
        double p_error = fabs(p_-true_)/true_;
        if (p_error >= .1) continue;
      }
-
-
      if (true_ > 500) continue;
      if ((ecal_+hcal_) < 0.5) continue; // illiminate power PF Algo performance
      if( true_ == 0){
@@ -256,8 +259,11 @@ void PFCheckRun(std::vector<std::string> inputFiles, TString outfile, int maxeve
      pt = fabs(p)/TMath::CosH(eta_);
      pf_ecalRaw = ecal_;
      pf_hcalRaw = hcal_;
+     pf_ecal = corrEcal_;
+     pf_hcal = corrHcal_;
      pf_hoRaw = ho_;
      pf_totalRaw = pf_ecalRaw + pf_hcalRaw;
+     pf_total = pf_ecal + pf_hcal;
      pf_hcalFrac1 = hcalFrac1_;
      pf_hcalFrac2 = hcalFrac2_;
      pf_hcalFrac3 = hcalFrac3_;
@@ -344,7 +350,7 @@ void ana_main(TString sampleType, TString testFile = "PGun_2_500_10_0_3_upgrade2
   int maxevents=-1;
   // edit 
   bool test_file = false; // if testing setup with single file (will have to edit below for file choice)
-  TString outfile  = sampleType+"_histos_trees_depth_samples.root"; // "_histos_trees_valid.root" "_histos_trees_new_samples.root"
+  TString outfile  = sampleType+"_histos_trees_corr_samples.root"; // "_histos_trees_valid.root" "_histos_trees_new_samples.root"
 
   std::vector<std::string> inputFiles;
   if (!test_file){

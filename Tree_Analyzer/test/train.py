@@ -35,7 +35,7 @@ def Build_Model(N_inputs, N_outputs, N_epochs):
     layer = keras.layers.Dense(28, activation='relu')(main_input)
     layer = keras.layers.Dropout(0.4)(layer)
     layer = keras.layers.Dense(28, activation='relu')(layer)
-    layer = keras.layers.Dropout(0.4)(layer)
+    layer = keras.layers.Dropout(0.1)(layer)
     first_output = keras.layers.Dense(1, activation='linear', name='first_output')(layer)
     second_output = keras.layers.Dense(3, activation='softmax', name='second_output')(layer)
 
@@ -83,7 +83,7 @@ def doMachineLearn(train_data, train_labels, test_data, test_labels):
     #early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=20) # 10
     history = model.fit(
         train_data, [train_labels['gen_e'],train_labels['type']], # target is the response
-        epochs=EPOCHS, batch_size=5128, # 5128
+        epochs=EPOCHS, batch_size=2564, # 5128
         validation_data=(test_data,[test_labels['gen_e'],test_labels['type']]),
         verbose=1) #callbacks=[early_stop])
     

@@ -38,9 +38,10 @@ process.maxEvents = cms.untracked.PSet(
 )
 
 # Input source
-Chrg_Pi_path = '/eos/uscms/store/user/hcal_upgrade/hatake/step3/PGun_step3_RECO_10_4_0_E2_500_v5/SinglePi/PGun_step3_RECO_10_4_0_E2_500_v5/190120_223058/0000/step*.root'
+Chrg_Dir_Num = 0 # 0,1,2,3,4
+Chrg_Pi_path = '/eos/uscms/store/user/hcal_upgrade/hatake/step3/PGun_step3_RECO_10_4_0_E2_500_v5/SinglePi/PGun_step3_RECO_10_4_0_E2_500_v5/190120_223058/000'+str(Chrg_Dir_Num)+'/step*.root'
 options.inputFiles = ['file:'+name for name in glob(Chrg_Pi_path) if 'inMINIAODSIM' not in name and 'step3_12.root' not in name] ###### lpc only
-options.outputFile = '/eos/uscms/store/user/bcaraway/SinglePi/singlePi_trees_0.root'
+options.outputFile = '/eos/uscms/store/user/bcaraway/SinglePi/singlePi_trees_'+str(Chrg_Dir_Num)+'.root'
 #options.outputFile = 'test.root'
 #print  (options.inputFiles if 'step3_12.root' in options.inputFiles else 'free of bug files!')
 process.source = cms.Source("PoolSource",

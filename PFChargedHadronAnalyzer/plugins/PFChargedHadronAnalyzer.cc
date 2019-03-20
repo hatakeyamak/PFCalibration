@@ -112,6 +112,8 @@ PFChargedHadronAnalyzer::PFChargedHadronAnalyzer(const edm::ParameterSet& iConfi
   s->Branch("p",&p_,"p/F");  
   s->Branch("ecal",&ecal_,"ecal/F");  
   s->Branch("hcal",&hcal_,"hcal/F");  
+  s->Branch("corrEcal",&corrEcal_,"corrEcal/F");  
+  s->Branch("corrHcal",&corrHcal_,"corrHcal/F");  
   s->Branch("ho",&ho_,"ho/F");  
   s->Branch("eta",&eta_,"eta/F");  
   s->Branch("phi",&phi_,"phi/F");
@@ -380,6 +382,8 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
       charge_=0;
       ecal_ = 0.;
       hcal_ = 0.;
+      corrEcal_ = 0.;
+      corrHcal_ = 0.;
       hcalFrac1_ = 0.;
       hcalFrac2_ = 0.;
       hcalFrac3_ = 0.;
@@ -409,9 +413,13 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
 	//   if (pfc.particleId() == 5 && pfc.rawEcalEnergy() != 0)
 	//     cout<<"pID:" << pfcID_.back() << " ,|eta|:" << fabs(eta_) << " ,dR:" << dr_.back() << " ,Eecal:" << Eecal_.back() << " ,Ehcal:" << Ehcal_.back() <<endl;
 	// }
-	if ( pfc.particleId() == 4 && dR < 0.2 ) ecal_ += pfc.rawEcalEnergy();
+	if ( pfc.particleId() == 4 && dR < 0.2 ){
+	  ecal_ += pfc.rawEcalEnergy();
+	  corrEcal_ += pfc.ecalEnergy();
+	}
 	if ( pfc.particleId() == 5 && dR < 0.4 ){
 	  hcal_ += pfc.rawHcalEnergy();
+	  corrHcal_ += pfc.hcalEnergy();
 	  hcalFrac1_ += pfc.hcalDepthEnergyFraction(1);
 	  hcalFrac2_ += pfc.hcalDepthEnergyFraction(2);
 	  hcalFrac3_ += pfc.hcalDepthEnergyFraction(3);
@@ -475,6 +483,8 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
     // At least 1 GeV in HCAL
     double ecalRaw = pfc.rawEcalEnergy();
     double hcalRaw = pfc.rawHcalEnergy();
+    double ecalCorr = pfc.ecalEnergy();
+    double hcalCorr = pfc.hcalEnergy();
     double hoRaw = pfc.rawHoEnergy();
 
     double hcalFrac1 = pfc.hcalDepthEnergyFraction(1);
@@ -793,6 +803,8 @@ PFChargedHadronAnalyzer::analyze(const Event& iEvent,
     p_ = p;
     ecal_ = ecalRaw;
     hcal_ = hcalRaw;
+    corrEcal_ = ecalCorr;
+    corrHcal_ = hcalCorr;
     ho_ = hoRaw;
 
     hcalFrac1_ = hcalFrac1; 
