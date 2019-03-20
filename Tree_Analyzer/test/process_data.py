@@ -5,7 +5,7 @@ import math
 
 def Get_tree_data(inputFiles,inputVariables, targetVariables,
                   withTracks,withDepth,endcapOnly,barrelOnly,
-                  isTrainProbe):
+                  withCorr, isTrainProbe):
 
 #'charge']#,'pf_hoRaw']
     if(withTracks):
@@ -13,6 +13,8 @@ def Get_tree_data(inputFiles,inputVariables, targetVariables,
     if(withDepth):
         inputVariables += ['pf_hcalFrac1', 'pf_hcalFrac2', 'pf_hcalFrac3', 
                   'pf_hcalFrac4', 'pf_hcalFrac5', 'pf_hcalFrac6', 'pf_hcalFrac7']
+    if(withCorr):
+        inputVariables += ['pf_total','pf_ecal','pf_hcal']
 
     def TChain(inputFiles):
         data = pd.DataFrame()
@@ -26,8 +28,7 @@ def Get_tree_data(inputFiles,inputVariables, targetVariables,
 
     dataset = TChain(inputFiles)
     dataset = dataset.dropna()
-
-
+    print dataset
 
     my_cut = (abs(dataset['eta'])< 2.4) & (dataset['pf_totalRaw'] >0) & (dataset['gen_e']>0) & (dataset['gen_e']<500)
     train_cut     = (dataset['pf_totalRaw']-dataset['gen_e'])/dataset['gen_e'] > -0.90 ## dont train on bad data with response of -1 
@@ -49,7 +50,15 @@ def Get_tree_data(inputFiles,inputVariables, targetVariables,
         dataset = dataset.sample(frac=.25, random_state=1)
     
     compareData = dataset.copy()
-
+    
+    if(withCorr):
+        compareData['pf_totalRaw'] = dataset['pf_total']
+        compareData['pf_hcalRaw'] = dataset['pf_hcal']
+        compareData['pf_ecalRaw'] = dataset['pf_ecal']
+        del dataset['pf_total']
+        del dataset['pf_hcal']
+        del dataset['pf_ecal']
+    
     return dataset, compareData
 
 def PreProcess(dataset, targetVariables):

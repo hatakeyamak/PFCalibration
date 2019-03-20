@@ -33,7 +33,7 @@ def Build_Model(N_inputs, N_outputs, N_epochs):
     
     main_input = keras.layers.Input(shape=[N_inputs], name='main_input')
     layer = keras.layers.Dense(28, activation='relu')(main_input)
-    layer = keras.layers.Dropout(0.2)(layer)
+    layer = keras.layers.Dropout(0.4)(layer)
     layer = keras.layers.Dense(28, activation='relu')(layer)
     layer = keras.layers.Dropout(0.1)(layer)
     first_output = keras.layers.Dense(1, activation='linear', name='first_output')(layer)
@@ -41,7 +41,7 @@ def Build_Model(N_inputs, N_outputs, N_epochs):
 
     model = keras.models.Model(inputs=main_input, outputs=[first_output, second_output], name='model')
     
-    optimizer  = keras.optimizers.Adam(lr=.0005, decay= .0005 / N_epochs) # lr = .0001, decay = .0001 / 200
+    optimizer  = keras.optimizers.Adam(lr=.001, decay= .001 / N_epochs) # lr = .0001, decay = .0001 / 200
   
     def RMSLE(y_true,y_pred):
         first_log = math_ops.log(K.clip(y_pred, K.epsilon(), None) + 1.)
@@ -77,7 +77,7 @@ def doMachineLearn(train_data, train_labels, test_data, test_labels):
     print "Target Variables: " + str(train_labels.keys())
     #### Train Model
 
-    EPOCHS = 100;
+    EPOCHS = 50;
     model = Build_Model(len(train_data.keys()), len(train_labels.keys()), EPOCHS)
 
     #early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=20) # 10
